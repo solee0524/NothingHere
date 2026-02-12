@@ -41,6 +41,7 @@ final class GuardModeManager {
             logger.info("Guard mode armed")
         } else {
             logger.error("Failed to arm guard mode — Accessibility permission may be missing")
+            NotificationCenter.default.post(name: .accessibilityPermissionNeeded, object: nil)
         }
     }
 

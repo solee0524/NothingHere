@@ -3,9 +3,11 @@
 //  NothingHere
 //
 
+import ApplicationServices
 import AppKit
 import OSLog
 import Sparkle
+import SwiftUI
 
 private let logger = Logger(subsystem: "boli.NothingHere", category: "AppDelegate")
 
@@ -22,6 +24,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var lastRegisteredKeyCode: UInt16 = 0
     private var lastRegisteredModifiers: UInt32 = 0
+
+    private var onboardingWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         logger.info("Application did finish launching")
@@ -65,6 +69,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self, selector: #selector(hotkeyRecordingDidEnd),
             name: .hotkeyRecordingDidEnd, object: nil
         )
+
+        // Permission needed notification — open Settings
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(handlePermissionNeeded),
+            name: .accessibilityPermissionNeeded, object: nil
+        )
+
+        // Re-register hotkey when accessibility permission is granted
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(handlePermissionGranted),
+            name: .accessibilityPermissionGranted, object: nil
+        )
+
+        // Show onboarding if first launch, also open Settings alongside
+        if !OnboardingViewModel.hasCompletedOnboarding {
+            DispatchQueue.main.async { [weak self] in
+                self?.openSettingsWindow()
+                self?.showOnboardingWindow()
+            }
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -72,6 +96,51 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         GuardModeManager.shared.disarm()
         logger.info("Application will terminate")
     }
+
+    // MARK: - Settings Window
+
+    func openSettingsWindow() {
+        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        NSApp.activate()
+    }
+
+    // MARK: - Onboarding Window
+
+    func showOnboardingWindow() {
+        // If already showing, just bring to front
+        if let existing = onboardingWindow, existing.isVisible {
+            existing.makeKeyAndOrderFront(nil)
+            NSApp.activate()
+            return
+        }
+
+        let viewModel = OnboardingViewModel()
+        viewModel.onComplete = { [weak self] in
+            self?.onboardingWindow?.close()
+        }
+
+        let hostingView = NSHostingView(rootView: OnboardingView(viewModel: viewModel))
+        hostingView.frame = NSRect(x: 0, y: 0, width: 500, height: 460)
+
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 500, height: 460),
+            styleMask: [.titled, .closable, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.isMovableByWindowBackground = true
+        window.contentView = hostingView
+        window.center()
+        window.isReleasedWhenClosed = false
+
+        onboardingWindow = window
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate()
+    }
+
+    // MARK: - Hotkey Management
 
     private func registerHotkeyFromDefaults() {
         let keyCode = UInt16(UserDefaults.standard.integer(forKey: "hotkeyKeyCode"))
@@ -83,6 +152,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         lastRegisteredModifiers = modifiers
 
         if keyCode != 0 || modifiers != 0 {
+            // Only create event tap if accessibility is already granted,
+            // to avoid triggering the system permission dialog on launch.
+            guard AXIsProcessTrusted() else {
+                logger.info("Skipping hotkey registration — accessibility not yet granted")
+                return
+            }
             hotkeyService.register(keyCode: keyCode, modifiers: modifiers)
         } else {
             hotkeyService.unregister()
@@ -104,6 +179,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         registerHotkeyFromDefaults()
         logger.info("Global hotkey resumed after recording")
     }
+
+    // MARK: - Permission Needed
+
+    @objc private func handlePermissionNeeded() {
+        openSettingsWindow()
+    }
+
+    @objc private func handlePermissionGranted() {
+        // Reset cached state so registerHotkeyFromDefaults re-evaluates
+        lastRegisteredKeyCode = 0
+        lastRegisteredModifiers = 0
+        registerHotkeyFromDefaults()
+        logger.info("Accessibility granted — registering hotkey")
+    }
+
+    // MARK: - Window Tracking
 
     @objc private func windowDidBecomeKey(_ notification: Notification) {
         guard let window = notification.object as? NSWindow,

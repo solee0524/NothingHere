@@ -20,7 +20,10 @@ struct NothingHereApp: App {
                 guardMode.toggle()
             }
             Divider()
-            Button("Check for Updates…") {
+            Button("Setup Guide\u{2026}") {
+                appDelegate.showOnboardingWindow()
+            }
+            Button("Check for Updates\u{2026}") {
                 appDelegate.updaterController.checkForUpdates(nil)
             }
             SettingsLink {

@@ -36,7 +36,7 @@ struct InstructionsTab: View {
                 instructionRow(
                     number: 3, color: .blue,
                     icon: "eye.slash",
-                    text: "Press the hotkey \u{2014} all windows hide and media pauses instantly"
+                    text: "Press the hotkey \u{2014} all windows hide and sound mutes instantly"
                 )
             }
         }

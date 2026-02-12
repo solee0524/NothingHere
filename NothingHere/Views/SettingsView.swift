@@ -149,7 +149,8 @@ private struct GeneralTab: View {
                     Button("Grant Permission") {
                         viewModel.grantPermission()
                     }
-                    .controlSize(.small)
+                    .controlSize(.regular)
+                    .buttonStyle(.borderedProminent)
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("If the dialog doesn't appear:")
@@ -180,12 +181,25 @@ private struct GeneralTab: View {
     private var hotkeyCard: some View {
         SettingsCard(header: "Panic Hotkey") {
             VStack(alignment: .leading, spacing: 12) {
-                hotkeyDisplay
-                    .popover(isPresented: $viewModel.showRecordingPopover) {
-                        hotkeyRecordingPopover
-                    }
+                HStack(spacing: 8) {
+                    hotkeyDisplay
+                        .popover(isPresented: Bindable(viewModel.hotkeyRecorder).showRecordingPopover) {
+                            hotkeyRecordingPopover
+                        }
 
-                if let conflict = viewModel.hotkeyConflictMessage {
+                    if viewModel.hotkeyRecorder.currentKeyName != nil {
+                        Button {
+                            viewModel.hotkeyRecorder.startRecordingHotkey()
+                        } label: {
+                            Image(systemName: "arrow.counterclockwise")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Change shortcut")
+                    }
+                }
+
+                if let conflict = viewModel.hotkeyRecorder.hotkeyConflictMessage {
                     Label(conflict, systemImage: "exclamationmark.triangle.fill")
                         .font(.caption)
                         .foregroundStyle(.orange)
@@ -196,11 +210,11 @@ private struct GeneralTab: View {
 
     private var hotkeyDisplay: some View {
         Button {
-            viewModel.startRecordingHotkey()
+            viewModel.hotkeyRecorder.startRecordingHotkey()
         } label: {
-            if let keyName = viewModel.currentKeyName {
+            if let keyName = viewModel.hotkeyRecorder.currentKeyName {
                 HStack(spacing: 4) {
-                    ForEach(viewModel.currentModifierSymbols, id: \.self) { symbol in
+                    ForEach(viewModel.hotkeyRecorder.currentModifierSymbols, id: \.self) { symbol in
                         KeyBadge(text: symbol)
                     }
                     KeyBadge(text: keyName)
@@ -229,16 +243,16 @@ private struct GeneralTab: View {
     private var hotkeyRecordingPopover: some View {
         VStack(alignment: .leading, spacing: 12) {
             HotkeyRecorderView(
-                onKeyDown: { event in viewModel.handleKeyEvent(event) },
-                onFlagsChanged: { event in viewModel.handleFlagsChanged(event) }
+                onKeyDown: { event in viewModel.hotkeyRecorder.handleKeyEvent(event) },
+                onFlagsChanged: { event in viewModel.hotkeyRecorder.handleFlagsChanged(event) }
             )
             .frame(height: 0)
 
             HStack {
-                if !viewModel.liveModifierSymbols.isEmpty {
+                if !viewModel.hotkeyRecorder.liveModifierSymbols.isEmpty {
                     HStack(spacing: 4) {
                         ForEach(
-                            Array(viewModel.liveModifierSymbols.enumerated()),
+                            Array(viewModel.hotkeyRecorder.liveModifierSymbols.enumerated()),
                             id: \.offset
                         ) { _, symbol in
                             KeyBadge(text: symbol)
@@ -247,7 +261,7 @@ private struct GeneralTab: View {
                 }
                 Spacer()
                 Button {
-                    viewModel.cancelRecording()
+                    viewModel.hotkeyRecorder.cancelRecording()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.secondary)
@@ -257,9 +271,9 @@ private struct GeneralTab: View {
                 .focusEffectDisabled()
             }
 
-            if viewModel.isPendingReady {
+            if viewModel.hotkeyRecorder.isPendingReady {
                 EmptyView()
-            } else if let conflict = viewModel.pendingConflict {
+            } else if let conflict = viewModel.hotkeyRecorder.pendingConflict {
                 Text(conflict)
                     .font(.caption)
                     .foregroundStyle(.orange)
@@ -269,16 +283,16 @@ private struct GeneralTab: View {
                     .foregroundStyle(.secondary)
             }
 
-            if viewModel.isPendingReady {
+            if viewModel.hotkeyRecorder.isPendingReady {
                 HStack {
                     Button("Reset") {
-                        viewModel.resetRecording()
+                        viewModel.hotkeyRecorder.resetRecording()
                     }
                     .controlSize(.small)
                     .foregroundStyle(.red)
                     Spacer()
                     Button("Confirm") {
-                        viewModel.confirmHotkey()
+                        viewModel.hotkeyRecorder.confirmHotkey()
                     }
                     .controlSize(.small)
                 }
@@ -323,40 +337,56 @@ private struct GeneralTab: View {
     private var documentCard: some View {
         SettingsCard(header: "Cover Document") {
             VStack(alignment: .leading, spacing: 12) {
-                Toggle("Open a file when panic is triggered", isOn: $viewModel.openDocumentEnabled)
-                    .toggleStyle(.switch)
+                Toggle(
+                    "Open a file when panic is triggered",
+                    isOn: Bindable(viewModel.documentManager).openDocumentEnabled
+                )
+                .toggleStyle(.switch)
 
-                if viewModel.openDocumentEnabled {
-                    if let url = viewModel.documentURL {
-                        HStack(spacing: 10) {
-                            fileIcon(for: url)
-                                .resizable()
-                                .frame(width: 32, height: 32)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(url.lastPathComponent)
-                                    .font(.body)
-                                Text(url.deletingLastPathComponent().path)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
-                            }
-                            Spacer()
-                            Button("Change") {
-                                viewModel.pickDocument()
-                            }
-                            .controlSize(.small)
+                if let url = viewModel.documentManager.documentURL {
+                    HStack(spacing: 10) {
+                        fileIcon(for: url)
+                            .resizable()
+                            .frame(width: 32, height: 32)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(url.lastPathComponent)
+                                .font(.body)
+                            Text(url.deletingLastPathComponent().path)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
                         }
-                    }
+                        Spacer()
+                        Button("Change") {
+                            viewModel.documentManager.pickDocument()
+                        }
+                        .controlSize(.small)
 
-                    if !viewModel.isDocumentValid {
-                        Label(
-                            "Selected file is no longer available. Please choose a new file.",
-                            systemImage: "exclamationmark.triangle.fill"
-                        )
-                        .font(.caption)
-                        .foregroundStyle(.orange)
+                        Button {
+                            viewModel.documentManager.removeDocument()
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Remove document")
                     }
+                    .opacity(viewModel.documentManager.openDocumentEnabled ? 1 : 0.5)
+                } else {
+                    Button("Choose File\u{2026}") {
+                        viewModel.documentManager.pickDocument()
+                    }
+                    .controlSize(.small)
+                }
+
+                if !viewModel.documentManager.isDocumentValid {
+                    Label(
+                        "Selected file is no longer available. Please choose a new file.",
+                        systemImage: "exclamationmark.triangle.fill"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(.orange)
                 }
             }
         }
@@ -370,7 +400,7 @@ private struct GeneralTab: View {
 
 // MARK: - KeyBadge
 
-private struct KeyBadge: View {
+struct KeyBadge: View {
     let text: String
 
     var body: some View {

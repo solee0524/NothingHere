@@ -1,0 +1,212 @@
+//
+//  HotkeyRecordingManager.swift
+//  NothingHere
+//
+
+import AppKit
+import Carbon.HIToolbox
+import OSLog
+
+private let logger = Logger(subsystem: "boli.NothingHere", category: "HotkeyRecording")
+
+@Observable
+final class HotkeyRecordingManager {
+
+    // MARK: - Display state
+
+    private(set) var currentHotkeyDisplay: String?
+    private(set) var currentModifierSymbols: [String] = []
+    private(set) var currentKeyName: String?
+
+    // MARK: - Recording state
+
+    var showRecordingPopover = false
+    private(set) var liveModifierSymbols: [String] = []
+    private(set) var pendingKeyCode: UInt16?
+    private(set) var pendingModifiers: UInt32?
+    private(set) var pendingDisplay: String?
+    private(set) var pendingConflict: String?
+    private(set) var isPendingReady = false
+    private(set) var hotkeyConflictMessage: String?
+
+    // MARK: - Computed
+
+    var hasHotkey: Bool {
+        currentKeyName != nil
+    }
+
+    // MARK: - Internal
+
+    private var debounceTimer: Timer?
+    private var hotkeyKeyCode: UInt16
+    private var hotkeyModifiers: UInt32
+
+    // MARK: - Default hotkey (⌃⌘Z)
+
+    static let defaultKeyCode = UInt16(kVK_ANSI_Z)
+    static let defaultModifiers = UInt32(NSEvent.ModifierFlags([.control, .command]).rawValue)
+
+    // MARK: - Init
+
+    init() {
+        self.hotkeyKeyCode = UInt16(UserDefaults.standard.integer(forKey: "hotkeyKeyCode"))
+        self.hotkeyModifiers = UInt32(UserDefaults.standard.integer(forKey: "hotkeyModifiers"))
+
+        // Set default hotkey ⌃⌘Z if none configured
+        if hotkeyKeyCode == 0 && hotkeyModifiers == 0 {
+            hotkeyKeyCode = Self.defaultKeyCode
+            hotkeyModifiers = Self.defaultModifiers
+            UserDefaults.standard.set(Int(hotkeyKeyCode), forKey: "hotkeyKeyCode")
+            UserDefaults.standard.set(Int(hotkeyModifiers), forKey: "hotkeyModifiers")
+            logger.info("Default hotkey set to Control+Command+Z")
+        }
+
+        loadHotkeyDisplay()
+    }
+
+    // MARK: - Recording
+
+    func startRecordingHotkey() {
+        hotkeyConflictMessage = nil
+        clearPendingState()
+        liveModifierSymbols = []
+        showRecordingPopover = true
+
+        NotificationCenter.default.post(name: .hotkeyRecordingDidStart, object: nil)
+
+        logger.info("Started hotkey recording")
+    }
+
+    func cancelRecording() {
+        invalidateDebounceTimer()
+        clearPendingState()
+        liveModifierSymbols = []
+        showRecordingPopover = false
+
+        NotificationCenter.default.post(name: .hotkeyRecordingDidEnd, object: nil)
+        logger.info("Hotkey recording cancelled")
+    }
+
+    func resetRecording() {
+        clearPendingState()
+        liveModifierSymbols = []
+        logger.info("Hotkey recording reset to initial state")
+    }
+
+    func confirmHotkey() {
+        guard let keyCode = pendingKeyCode, let modifiers = pendingModifiers else { return }
+
+        hotkeyKeyCode = keyCode
+        hotkeyModifiers = modifiers
+        UserDefaults.standard.set(Int(keyCode), forKey: "hotkeyKeyCode")
+        UserDefaults.standard.set(Int(modifiers), forKey: "hotkeyModifiers")
+
+        hotkeyConflictMessage = nil
+        loadHotkeyDisplay()
+        invalidateDebounceTimer()
+        clearPendingState()
+        liveModifierSymbols = []
+        showRecordingPopover = false
+
+        NotificationCenter.default.post(name: .hotkeyRecordingDidEnd, object: nil)
+
+        let display = currentHotkeyDisplay ?? "unknown"
+        logger.info("Hotkey saved: \(display)")
+    }
+
+    func handleKeyEvent(_ event: NSEvent) {
+        let keyCode = event.keyCode
+
+        // Escape cancels recording
+        if keyCode == UInt16(kVK_Escape) {
+            cancelRecording()
+            return
+        }
+
+        // Require at least one modifier key
+        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        let hasModifier = modifiers.contains(.command) || modifiers.contains(.control)
+            || modifiers.contains(.option)
+        guard hasModifier else { return }
+
+        let modifierRaw = UInt32(modifiers.rawValue)
+
+        // Store pending combination
+        pendingKeyCode = keyCode
+        pendingModifiers = modifierRaw
+        pendingDisplay = KeyCodeMapper.displayString(keyCode: keyCode, modifiers: modifierRaw)
+        pendingConflict = nil
+        isPendingReady = false
+
+        // Update live display to show full combination
+        liveModifierSymbols = KeyCodeMapper.modifierSymbolList(for: modifierRaw)
+            + [KeyCodeMapper.keyName(for: keyCode)]
+
+        // Start debounce timer for conflict check
+        debounceTimer?.invalidate()
+        debounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
+            self?.checkPendingConflict()
+        }
+    }
+
+    func handleFlagsChanged(_ event: NSEvent) {
+        // Only update live modifiers if we don't have a pending combination yet
+        guard pendingKeyCode == nil else { return }
+
+        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        liveModifierSymbols = KeyCodeMapper.modifierSymbolList(for: UInt32(modifiers.rawValue))
+    }
+
+    func resetToDefault() {
+        hotkeyKeyCode = Self.defaultKeyCode
+        hotkeyModifiers = Self.defaultModifiers
+        UserDefaults.standard.set(Int(hotkeyKeyCode), forKey: "hotkeyKeyCode")
+        UserDefaults.standard.set(Int(hotkeyModifiers), forKey: "hotkeyModifiers")
+        loadHotkeyDisplay()
+        logger.info("Hotkey reset to default: Control+Command+Z")
+    }
+
+    // MARK: - Private
+
+    private func checkPendingConflict() {
+        guard let keyCode = pendingKeyCode, let modifiers = pendingModifiers else { return }
+
+        let conflict = KeyCodeMapper.checkConflict(keyCode: keyCode, modifiers: modifiers)
+        if conflict.isConflicting {
+            pendingConflict = conflict.description
+            isPendingReady = false
+            logger.warning("Hotkey conflict detected: \(conflict.description ?? "")")
+        } else {
+            pendingConflict = nil
+            isPendingReady = true
+        }
+    }
+
+    private func invalidateDebounceTimer() {
+        debounceTimer?.invalidate()
+        debounceTimer = nil
+    }
+
+    private func clearPendingState() {
+        pendingKeyCode = nil
+        pendingModifiers = nil
+        pendingDisplay = nil
+        pendingConflict = nil
+        isPendingReady = false
+    }
+
+    func loadHotkeyDisplay() {
+        if hotkeyKeyCode == 0 && hotkeyModifiers == 0 {
+            currentHotkeyDisplay = nil
+            currentModifierSymbols = []
+            currentKeyName = nil
+        } else {
+            currentHotkeyDisplay = KeyCodeMapper.displayString(
+                keyCode: hotkeyKeyCode,
+                modifiers: hotkeyModifiers
+            )
+            currentModifierSymbols = KeyCodeMapper.modifierSymbolList(for: hotkeyModifiers)
+            currentKeyName = KeyCodeMapper.keyName(for: hotkeyKeyCode)
+        }
+    }
+}
