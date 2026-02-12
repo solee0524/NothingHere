@@ -28,9 +28,6 @@ final class HotkeyService: HotkeyServiceProtocol {
             return
         }
 
-        let expectedModifiers = NSEvent.ModifierFlags(rawValue: UInt(modifiers))
-            .intersection(.deviceIndependentFlagsMask)
-
         let callback: CGEventTapCallBack = { _, _, event, userInfo in
             guard let userInfo else { return Unmanaged.passUnretained(event) }
             let service = Unmanaged<HotkeyService>.fromOpaque(userInfo).takeUnretainedValue()
