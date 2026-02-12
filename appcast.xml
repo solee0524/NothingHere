@@ -25,5 +25,13 @@
             <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
             <enclosure url="https://github.com/solee0524/NothingHere/releases/download/v1.0.0/NothingHere-v1.0.0.dmg" length="2612861" type="application/octet-stream" sparkle:edSignature="z49xwBUrauSh0/F4kGomm8pixVHahr/46GCRJtvRlXMQXEILhE+iFjB1RHJaJ4qCDrgHxpXrXIS79AeNnv8hBg=="/>
         </item>
+        <item>
+            <title>1.0.2</title>
+            <pubDate>Thu, 12 Feb 2026 22:40:52 +0800</pubDate>
+            <sparkle:version>1</sparkle:version>
+            <sparkle:shortVersionString>1.0.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
+            <enclosure url="https://raw.githubusercontent.com/solee0524/NothingHere/main/NothingHere-v1.0.2.dmg" length="2756590" type="application/octet-stream" sparkle:edSignature="AEUWolmIsr7qGtBB9iXLOin9PXV2C4hl/fOeNb+y0tBdcbjPkJ+EspSEBuddCZwsZi7GF3E8I33gD4UhFeRHDw=="/>
+        </item>
     </channel>
 </rss>
