@@ -50,6 +50,30 @@ DMG_PATH="${BUILD_DIR}/${DMG_NAME}"
 echo "==> Releasing ${APP_NAME} v${VERSION}"
 echo ""
 
+# ─── Determine build number ──────────────────────────────────────────────────
+
+echo "==> Determining build number from appcast..."
+PBXPROJ="${PROJECT_ROOT}/${PROJECT}/project.pbxproj"
+
+MAX_SPARKLE="0"
+if [[ -f "${PROJECT_ROOT}/appcast.xml" ]]; then
+    MAX_SPARKLE=$(sed -n 's/.*<sparkle:version>\(.*\)<\/sparkle:version>.*/\1/p' \
+        "${PROJECT_ROOT}/appcast.xml" | sort -V | tail -1)
+    MAX_SPARKLE="${MAX_SPARKLE:-0}"
+fi
+
+if [[ "${MAX_SPARKLE}" =~ ^[0-9]+$ ]]; then
+    NEW_BUILD=$((MAX_SPARKLE + 1))
+else
+    PREFIX="${MAX_SPARKLE%.*}"
+    LAST="${MAX_SPARKLE##*.}"
+    NEW_BUILD="${PREFIX}.$((LAST + 1))"
+fi
+
+echo "    Latest appcast build:     ${MAX_SPARKLE}"
+echo "    MARKETING_VERSION         = ${VERSION}"
+echo "    CURRENT_PROJECT_VERSION   = ${NEW_BUILD}"
+
 # ─── Clean previous build ────────────────────────────────────────────────────
 
 echo "==> Cleaning build directory..."
@@ -67,6 +91,8 @@ xcodebuild archive \
     CODE_SIGN_STYLE=Manual \
     CODE_SIGN_IDENTITY="Developer ID Application" \
     DEVELOPMENT_TEAM="${TEAM_ID}" \
+    MARKETING_VERSION="${VERSION}" \
+    CURRENT_PROJECT_VERSION="${NEW_BUILD}" \
     | tail -1
 
 echo "    Archive created: ${ARCHIVE_PATH}"
@@ -170,6 +196,14 @@ else
     echo "    Skipped GitHub Release. Upload manually:"
     echo "    gh release create v${VERSION} ${DMG_PATH} --title '${APP_NAME} v${VERSION}'"
 fi
+
+# ─── Step 10: Update Xcode project version numbers ──────────────────────────
+
+echo "==> Writing version numbers back to Xcode project..."
+sed -i '' "s/MARKETING_VERSION = [^;]*;/MARKETING_VERSION = ${VERSION};/g" "${PBXPROJ}"
+sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*;/CURRENT_PROJECT_VERSION = ${NEW_BUILD};/g" "${PBXPROJ}"
+echo "    MARKETING_VERSION         = ${VERSION}"
+echo "    CURRENT_PROJECT_VERSION   = ${NEW_BUILD}"
 
 echo ""
 echo "==> Done! Release v${VERSION} complete."
