@@ -169,7 +169,9 @@ echo "    Verification complete."
 echo "==> Generating Sparkle appcast..."
 SPARKLE_BIN=$(find ~/Library/Developer/Xcode/DerivedData -path "*/sparkle/Sparkle/bin" -type d 2>/dev/null | head -1)
 if [[ -n "${SPARKLE_BIN}" && -d "${SPARKLE_BIN}" ]]; then
+    DOWNLOAD_URL_PREFIX="https://github.com/solee0524/NothingHere/releases/download/v${VERSION}/"
     "${SPARKLE_BIN}/generate_appcast" "${BUILD_DIR}" \
+        --download-url-prefix "${DOWNLOAD_URL_PREFIX}" \
         -o "${PROJECT_ROOT}/appcast.xml" 2>/dev/null || {
         echo "    Warning: generate_appcast failed. Update appcast.xml manually."
     }
