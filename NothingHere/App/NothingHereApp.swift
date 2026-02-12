@@ -24,6 +24,8 @@ struct NothingHereApp: App {
                 appDelegate.showOnboardingWindow()
             }
             Button("Check for Updates\u{2026}") {
+                NSApp.setActivationPolicy(.regular)
+                NSApp.activate()
                 appDelegate.updaterController.checkForUpdates(nil)
             }
             SettingsLink {
