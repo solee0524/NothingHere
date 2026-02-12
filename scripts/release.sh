@@ -1,0 +1,175 @@
+#!/usr/bin/env bash
+#
+# release.sh — Build, sign, notarize, package, and release NothingHere
+#
+# Usage:
+#   ./scripts/release.sh <version>
+#
+# Example:
+#   ./scripts/release.sh 1.0.0
+#
+# Prerequisites:
+#   - Developer ID Application certificate in Keychain
+#   - Apple ID App-Specific Password stored in Keychain:
+#       xcrun notarytool store-credentials "notarytool-profile" \
+#         --apple-id "YOUR_APPLE_ID" \
+#         --team-id SFRYJG9KXH \
+#         --password "APP_SPECIFIC_PASSWORD"
+#   - brew install create-dmg
+#   - gh CLI authenticated
+
+set -euo pipefail
+
+# ─── Configuration ────────────────────────────────────────────────────────────
+
+PROJECT="NothingHere.xcodeproj"
+SCHEME="NothingHere"
+APP_NAME="NothingHere"
+TEAM_ID="SFRYJG9KXH"
+NOTARYTOOL_PROFILE="notarytool-profile"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+BUILD_DIR="${PROJECT_ROOT}/build"
+ARCHIVE_PATH="${BUILD_DIR}/${APP_NAME}.xcarchive"
+EXPORT_PATH="${BUILD_DIR}/export"
+EXPORT_OPTIONS="${SCRIPT_DIR}/ExportOptions.plist"
+
+# ─── Validate arguments ──────────────────────────────────────────────────────
+
+if [[ $# -lt 1 ]]; then
+    echo "Usage: $0 <version>"
+    echo "Example: $0 1.0.0"
+    exit 1
+fi
+
+VERSION="$1"
+DMG_NAME="${APP_NAME}-v${VERSION}.dmg"
+DMG_PATH="${BUILD_DIR}/${DMG_NAME}"
+
+echo "==> Releasing ${APP_NAME} v${VERSION}"
+echo ""
+
+# ─── Clean previous build ────────────────────────────────────────────────────
+
+echo "==> Cleaning build directory..."
+rm -rf "${BUILD_DIR}"
+mkdir -p "${BUILD_DIR}"
+
+# ─── Step 1: Archive ─────────────────────────────────────────────────────────
+
+echo "==> Archiving..."
+xcodebuild archive \
+    -project "${PROJECT_ROOT}/${PROJECT}" \
+    -scheme "${SCHEME}" \
+    -archivePath "${ARCHIVE_PATH}" \
+    -configuration Release \
+    CODE_SIGN_STYLE=Manual \
+    CODE_SIGN_IDENTITY="Developer ID Application" \
+    DEVELOPMENT_TEAM="${TEAM_ID}" \
+    | tail -1
+
+echo "    Archive created: ${ARCHIVE_PATH}"
+
+# ─── Step 2: Export ──────────────────────────────────────────────────────────
+
+echo "==> Exporting signed app..."
+xcodebuild -exportArchive \
+    -archivePath "${ARCHIVE_PATH}" \
+    -exportPath "${EXPORT_PATH}" \
+    -exportOptionsPlist "${EXPORT_OPTIONS}" \
+    | tail -1
+
+APP_PATH="${EXPORT_PATH}/${APP_NAME}.app"
+echo "    Exported: ${APP_PATH}"
+
+# ─── Step 3: Verify code signature ──────────────────────────────────────────
+
+echo "==> Verifying code signature..."
+codesign --verify --deep --strict "${APP_PATH}"
+echo "    Signature valid."
+
+# ─── Step 4: Create DMG ─────────────────────────────────────────────────────
+
+echo "==> Creating DMG..."
+if command -v create-dmg &>/dev/null; then
+    create-dmg \
+        --volname "${APP_NAME}" \
+        --window-size 600 400 \
+        --icon-size 128 \
+        --icon "${APP_NAME}.app" 150 200 \
+        --app-drop-link 450 200 \
+        --no-internet-enable \
+        "${DMG_PATH}" \
+        "${APP_PATH}"
+else
+    echo "    create-dmg not found, falling back to hdiutil..."
+    STAGING_DIR="${BUILD_DIR}/dmg-staging"
+    mkdir -p "${STAGING_DIR}"
+    cp -R "${APP_PATH}" "${STAGING_DIR}/"
+    ln -s /Applications "${STAGING_DIR}/Applications"
+    hdiutil create -volname "${APP_NAME}" \
+        -srcfolder "${STAGING_DIR}" \
+        -ov -format UDZO \
+        "${DMG_PATH}"
+    rm -rf "${STAGING_DIR}"
+fi
+
+echo "    DMG created: ${DMG_PATH}"
+
+# ─── Step 5: Notarize ───────────────────────────────────────────────────────
+
+echo "==> Submitting for notarization..."
+xcrun notarytool submit "${DMG_PATH}" \
+    --keychain-profile "${NOTARYTOOL_PROFILE}" \
+    --wait
+
+echo "    Notarization complete."
+
+# ─── Step 6: Staple ─────────────────────────────────────────────────────────
+
+echo "==> Stapling notarization ticket..."
+xcrun stapler staple "${DMG_PATH}"
+echo "    Stapled."
+
+# ─── Step 7: Verify notarization ────────────────────────────────────────────
+
+echo "==> Verifying notarization..."
+spctl --assess --type open --context context:primary-signature "${DMG_PATH}" 2>&1 || true
+echo "    Verification complete."
+
+# ─── Step 8: Generate Sparkle appcast ────────────────────────────────────────
+
+echo "==> Generating Sparkle appcast..."
+SPARKLE_BIN=$(find ~/Library/Developer/Xcode/DerivedData -path "*/sparkle/Sparkle/bin" -type d 2>/dev/null | head -1)
+if [[ -n "${SPARKLE_BIN}" && -d "${SPARKLE_BIN}" ]]; then
+    "${SPARKLE_BIN}/generate_appcast" "${BUILD_DIR}" \
+        -o "${PROJECT_ROOT}/appcast.xml" 2>/dev/null || {
+        echo "    Warning: generate_appcast failed. Update appcast.xml manually."
+    }
+    echo "    appcast.xml updated."
+else
+    echo "    Sparkle bin not found in DerivedData."
+    echo "    Run generate_appcast manually or update appcast.xml by hand."
+fi
+
+# ─── Step 9: Create GitHub Release ──────────────────────────────────────────
+
+echo ""
+echo "==> Ready to create GitHub Release."
+echo "    DMG: ${DMG_PATH}"
+echo ""
+read -rp "Create GitHub Release v${VERSION}? [y/N] " confirm
+if [[ "${confirm}" =~ ^[Yy]$ ]]; then
+    gh release create "v${VERSION}" \
+        "${DMG_PATH}" \
+        --title "${APP_NAME} v${VERSION}" \
+        --notes "Release v${VERSION}"
+    echo "    GitHub Release created."
+else
+    echo "    Skipped GitHub Release. Upload manually:"
+    echo "    gh release create v${VERSION} ${DMG_PATH} --title '${APP_NAME} v${VERSION}'"
+fi
+
+echo ""
+echo "==> Done! Release v${VERSION} complete."

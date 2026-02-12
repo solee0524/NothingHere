@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSAccessibilityUsageDescription</key>
+	<string>NothingHere needs Accessibility access to hide windows and listen for the global hotkey.</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.utilities</string>
+	<key>SUFeedURL</key>
+	<string>https://raw.githubusercontent.com/solee0524/NothingHere/main/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>8unmhiK6r9KfAsFg+JjYcBZN8OOgQ4beQb7WLvcGtR0=</string>
+</dict>
+</plist>
