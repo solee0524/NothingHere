@@ -4,10 +4,102 @@
 //
 
 import AppKit
+import Sparkle
 import SwiftUI
 
 struct SettingsView: View {
+    let updater: SPUUpdater
+
+    enum SettingsTab: String, CaseIterable {
+        case general, help, about
+
+        var title: String {
+            switch self {
+            case .general: "General"
+            case .help: "Help"
+            case .about: "About"
+            }
+        }
+
+        var icon: String {
+            switch self {
+            case .general: "gearshape"
+            case .help: "book"
+            case .about: "info.circle"
+            }
+        }
+    }
+
+    @State private var selectedTab: SettingsTab = .general
     @State private var viewModel = SettingsViewModel()
+
+    var body: some View {
+        HStack(spacing: 0) {
+            sidebar
+            Divider()
+            tabContent
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .frame(width: 560)
+        .frame(minHeight: 520)
+        .onAppear {
+            viewModel.onAppear()
+            NSApp.activate()
+            if let window = NSApp.windows.first(where: { $0.isVisible && $0.level == .normal }) {
+                window.orderFrontRegardless()
+            }
+        }
+        .onDisappear { viewModel.onDisappear() }
+    }
+
+    // MARK: - Sidebar
+
+    private var sidebar: some View {
+        VStack(spacing: 2) {
+            ForEach(SettingsTab.allCases, id: \.self) { tab in
+                Button {
+                    selectedTab = tab
+                } label: {
+                    Label(tab.title, systemImage: tab.icon)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 8)
+                        .background(
+                            selectedTab == tab
+                                ? AnyShapeStyle(.selection)
+                                : AnyShapeStyle(.clear),
+                            in: .rect(cornerRadius: 6)
+                        )
+                        .contentShape(.rect)
+                }
+                .buttonStyle(.plain)
+                .focusEffectDisabled()
+            }
+            Spacer()
+        }
+        .padding(8)
+        .frame(width: 160)
+    }
+
+    // MARK: - Tab Content
+
+    @ViewBuilder
+    private var tabContent: some View {
+        switch selectedTab {
+        case .general:
+            GeneralTab(viewModel: viewModel)
+        case .help:
+            InstructionsTab()
+        case .about:
+            AboutTab(updater: updater)
+        }
+    }
+}
+
+// MARK: - GeneralTab
+
+private struct GeneralTab: View {
+    @Bindable var viewModel: SettingsViewModel
 
     private var guardMode: GuardModeManager { GuardModeManager.shared }
 
@@ -21,10 +113,6 @@ struct SettingsView: View {
             }
             .padding(20)
         }
-        .frame(width: 420)
-        .frame(minHeight: 300)
-        .onAppear { viewModel.onAppear() }
-        .onDisappear { viewModel.onDisappear() }
     }
 
     // MARK: - Permission Card
@@ -32,7 +120,6 @@ struct SettingsView: View {
     private var permissionCard: some View {
         SettingsCard(header: "Permissions") {
             if viewModel.isAccessibilityGranted {
-                // Compact granted state
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
@@ -45,7 +132,6 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
             } else {
-                // Expanded ungrated state
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 8) {
                         Image(systemName: "xmark.circle.fill")
@@ -69,9 +155,11 @@ struct SettingsView: View {
                         Text("If the dialog doesn't appear:")
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                        Text("System Settings → Privacy & Security → Accessibility → Enable \"NothingHere\"")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        Text(
+                            "System Settings \u{2192} Privacy & Security \u{2192} Accessibility \u{2192} Enable \"NothingHere\""
+                        )
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     }
 
                     Button("Open System Settings") {
@@ -111,7 +199,6 @@ struct SettingsView: View {
             viewModel.startRecordingHotkey()
         } label: {
             if let keyName = viewModel.currentKeyName {
-                // Raycast-style badge display
                 HStack(spacing: 4) {
                     ForEach(viewModel.currentModifierSymbols, id: \.self) { symbol in
                         KeyBadge(text: symbol)
@@ -119,7 +206,6 @@ struct SettingsView: View {
                     KeyBadge(text: keyName)
                 }
             } else {
-                // Unset state — dashed capsule
                 Text("Record Shortcut")
                     .font(.callout)
                     .foregroundStyle(.secondary)
@@ -148,7 +234,6 @@ struct SettingsView: View {
             )
             .frame(height: 0)
 
-            // Header with close button
             HStack {
                 if !viewModel.liveModifierSymbols.isEmpty {
                     HStack(spacing: 4) {
@@ -172,9 +257,7 @@ struct SettingsView: View {
                 .focusEffectDisabled()
             }
 
-            // Status area
             if viewModel.isPendingReady {
-                // Ready to confirm — no extra text needed
                 EmptyView()
             } else if let conflict = viewModel.pendingConflict {
                 Text(conflict)
@@ -186,7 +269,6 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
-            // Action buttons
             if viewModel.isPendingReady {
                 HStack {
                     Button("Reset") {
@@ -211,9 +293,11 @@ struct SettingsView: View {
     private var guardModeCard: some View {
         SettingsCard(header: "Guard Mode") {
             VStack(alignment: .leading, spacing: 12) {
-                Text("When armed, the very next key press will trigger the panic sequence and automatically disarm. Any key works — no modifier needed. You can also arm from the menu bar.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Text(
+                    "When armed, the very next key press will trigger the panic sequence and automatically disarm. Any key works \u{2014} no modifier needed. You can also arm from the menu bar."
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
                 HStack {
                     HStack(spacing: 6) {
@@ -300,7 +384,7 @@ private struct KeyBadge: View {
 
 // MARK: - SettingsCard
 
-private struct SettingsCard<Content: View>: View {
+struct SettingsCard<Content: View>: View {
     let header: String
     @ViewBuilder let content: Content
 
@@ -321,5 +405,7 @@ private struct SettingsCard<Content: View>: View {
 }
 
 #Preview {
-    SettingsView()
+    SettingsView(updater: SPUStandardUpdaterController(
+        startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil
+    ).updater)
 }

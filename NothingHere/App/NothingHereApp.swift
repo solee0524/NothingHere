@@ -34,7 +34,7 @@ struct NothingHereApp: App {
             Image(systemName: guardMode.isArmed ? "eye.slash.fill" : "eye.slash")
         }
         Settings {
-            SettingsView()
+            SettingsView(updater: appDelegate.updaterController.updater)
         }
     }
 }
