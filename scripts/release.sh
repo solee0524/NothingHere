@@ -181,7 +181,15 @@ else
     echo "    Run generate_appcast manually or update appcast.xml by hand."
 fi
 
-# ─── Step 9: Create GitHub Release ──────────────────────────────────────────
+# ─── Step 9: Update Xcode project version numbers ──────────────────────────
+
+echo "==> Writing version numbers back to Xcode project..."
+sed -i '' "s/MARKETING_VERSION = [^;]*;/MARKETING_VERSION = ${VERSION};/g" "${PBXPROJ}"
+sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*;/CURRENT_PROJECT_VERSION = ${NEW_BUILD};/g" "${PBXPROJ}"
+echo "    MARKETING_VERSION         = ${VERSION}"
+echo "    CURRENT_PROJECT_VERSION   = ${NEW_BUILD}"
+
+# ─── Step 10: Create GitHub Release ──────────────────────────────────────────
 
 echo ""
 echo "==> Ready to create GitHub Release."
@@ -198,14 +206,6 @@ else
     echo "    Skipped GitHub Release. Upload manually:"
     echo "    gh release create v${VERSION} ${DMG_PATH} --title '${APP_NAME} v${VERSION}'"
 fi
-
-# ─── Step 10: Update Xcode project version numbers ──────────────────────────
-
-echo "==> Writing version numbers back to Xcode project..."
-sed -i '' "s/MARKETING_VERSION = [^;]*;/MARKETING_VERSION = ${VERSION};/g" "${PBXPROJ}"
-sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*;/CURRENT_PROJECT_VERSION = ${NEW_BUILD};/g" "${PBXPROJ}"
-echo "    MARKETING_VERSION         = ${VERSION}"
-echo "    CURRENT_PROJECT_VERSION   = ${NEW_BUILD}"
 
 echo ""
 echo "==> Done! Release v${VERSION} complete."
