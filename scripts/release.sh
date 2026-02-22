@@ -118,28 +118,33 @@ echo "    Signature valid."
 # ─── Step 4: Create DMG ─────────────────────────────────────────────────────
 
 echo "==> Creating DMG..."
+STAGING_DIR="${BUILD_DIR}/dmg-staging"
+rm -rf "${STAGING_DIR}"
+mkdir -p "${STAGING_DIR}"
+cp -R "${APP_PATH}" "${STAGING_DIR}/"
+
 if command -v create-dmg &>/dev/null; then
     create-dmg \
         --volname "${APP_NAME}" \
+        --filesystem APFS \
         --window-size 600 400 \
         --icon-size 128 \
         --icon "${APP_NAME}.app" 150 200 \
         --app-drop-link 450 200 \
         --no-internet-enable \
         "${DMG_PATH}" \
-        "${APP_PATH}"
+        "${STAGING_DIR}"
 else
     echo "    create-dmg not found, falling back to hdiutil..."
-    STAGING_DIR="${BUILD_DIR}/dmg-staging"
-    mkdir -p "${STAGING_DIR}"
-    cp -R "${APP_PATH}" "${STAGING_DIR}/"
     ln -s /Applications "${STAGING_DIR}/Applications"
     hdiutil create -volname "${APP_NAME}" \
         -srcfolder "${STAGING_DIR}" \
+        -fs APFS \
         -ov -format UDZO \
         "${DMG_PATH}"
-    rm -rf "${STAGING_DIR}"
 fi
+
+rm -rf "${STAGING_DIR}"
 
 echo "    DMG created: ${DMG_PATH}"
 
