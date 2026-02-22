@@ -28,8 +28,8 @@ struct NothingHereApp: App {
                 NSApp.activate()
                 appDelegate.updaterController.checkForUpdates(nil)
             }
-            SettingsLink {
-                Text("Settings…")
+            Button("Settings…") {
+                appDelegate.openSettingsWindow()
             }
             Divider()
             Button("Quit") {

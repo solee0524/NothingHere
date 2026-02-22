@@ -100,6 +100,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Settings Window
 
     func openSettingsWindow() {
+        NSApp.setActivationPolicy(.regular)
         NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
         NSApp.activate()
     }
@@ -107,6 +108,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Onboarding Window
 
     func showOnboardingWindow() {
+        NSApp.setActivationPolicy(.regular)
+
         // If already showing, just bring to front
         if let existing = onboardingWindow, existing.isVisible {
             existing.makeKeyAndOrderFront(nil)
