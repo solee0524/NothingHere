@@ -18,7 +18,7 @@ struct AboutTab: View {
         self._autoCheckForUpdates = State(initialValue: updater.automaticallyChecksForUpdates)
     }
 
-    private let email = "iblee0524@gmail.com"
+    private let email = "helplee2026@gmail.com"
     private let kofiURL = URL(string: "https://ko-fi.com/solee0524")!
 
     private var appVersion: String {
