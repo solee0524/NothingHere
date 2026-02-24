@@ -26,6 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastRegisteredModifiers: UInt32 = 0
 
     private var onboardingWindow: NSWindow?
+    var openSettingsAction: (() -> Void)?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         logger.info("Application did finish launching")
@@ -101,8 +102,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func openSettingsWindow() {
         NSApp.setActivationPolicy(.regular)
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
         NSApp.activate()
+        if let action = openSettingsAction {
+            action()
+        } else {
+            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        }
     }
 
     // MARK: - Onboarding Window
@@ -112,6 +117,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // If already showing, just bring to front
         if let existing = onboardingWindow, existing.isVisible {
+            existing.orderFrontRegardless()
             existing.makeKeyAndOrderFront(nil)
             NSApp.activate()
             return
@@ -139,6 +145,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.isReleasedWhenClosed = false
 
         onboardingWindow = window
+        window.orderFrontRegardless()
         window.makeKeyAndOrderFront(nil)
         NSApp.activate()
     }

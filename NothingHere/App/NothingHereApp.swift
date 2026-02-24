@@ -16,6 +16,24 @@ struct NothingHereApp: App {
 
     var body: some Scene {
         MenuBarExtra {
+            MenuBarContentView(appDelegate: appDelegate)
+        } label: {
+            Image(systemName: guardMode.isArmed ? "eye.slash.fill" : "eye.slash")
+        }
+        Settings {
+            SettingsView(updater: appDelegate.updaterController.updater)
+        }
+    }
+}
+
+private struct MenuBarContentView: View {
+    let appDelegate: AppDelegate
+    @Environment(\.openSettings) private var openSettings
+
+    private var guardMode: GuardModeManager { GuardModeManager.shared }
+
+    var body: some View {
+        Group {
             Button(guardMode.isArmed ? "Disarm Guard Mode" : "Arm Guard Mode") {
                 guardMode.toggle()
             }
@@ -28,18 +46,20 @@ struct NothingHereApp: App {
                 NSApp.activate()
                 appDelegate.updaterController.checkForUpdates(nil)
             }
-            Button("Settings…") {
-                appDelegate.openSettingsWindow()
+            Button("Settings\u{2026}") {
+                NSApp.setActivationPolicy(.regular)
+                NSApp.activate()
+                openSettings()
             }
             Divider()
             Button("Quit") {
                 NSApplication.shared.terminate(nil)
             }
-        } label: {
-            Image(systemName: guardMode.isArmed ? "eye.slash.fill" : "eye.slash")
         }
-        Settings {
-            SettingsView(updater: appDelegate.updaterController.updater)
+        .onAppear {
+            appDelegate.openSettingsAction = { [openSettings] in
+                openSettings()
+            }
         }
     }
 }
