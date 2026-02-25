@@ -4,8 +4,156 @@
 //
 
 import AppKit
+import LucideIcons
 import Sparkle
 import SwiftUI
+
+// MARK: - Design Tokens
+
+private enum DesignColors {
+    static let background = Color(hex: 0x222222)
+    static let sidebarTop = Color(hex: 0x111111)
+    static let sidebarBottom = Color(hex: 0x222222)
+    static let cardFill = Color(hex: 0x0D0D0D)
+    static let cardBorder = Color(hex: 0x666666)
+    static let accentBlue = Color(hex: 0x4584EE)
+    static let warningOrange = Color(hex: 0xD54713)
+    static let successGreen = Color(hex: 0x17D952)
+    static let secondaryText = Color(hex: 0x666666)
+    static let tabUnselected = Color(hex: 0x666666).opacity(0.2)
+    static let keyBadgeFill = Color(hex: 0x222222)
+    static let darkOrangeCircle = Color(hex: 0x622008)
+}
+
+private enum DesignMetrics {
+    static let windowWidth: CGFloat = 740
+    static let windowMinHeight: CGFloat = 560
+    static let sidebarWidth: CGFloat = 180
+    static let cardCornerRadius: CGFloat = 16
+    static let cardPadding: CGFloat = 16
+    static let pillCornerRadius: CGFloat = 35
+    static let iconCircleSize: CGFloat = 32
+    static let keyBadgeSize: CGFloat = 48
+    static let tabCornerRadius: CGFloat = 16
+}
+
+// MARK: - Color Extension
+
+private extension Color {
+    init(hex: UInt, opacity: Double = 1.0) {
+        self.init(
+            red: Double((hex >> 16) & 0xFF) / 255.0,
+            green: Double((hex >> 8) & 0xFF) / 255.0,
+            blue: Double(hex & 0xFF) / 255.0,
+            opacity: opacity
+        )
+    }
+}
+
+// MARK: - Lucide Helper
+
+private func lucideIcon(_ image: NSImage, size: CGFloat = 14) -> some View {
+    Image(nsImage: image)
+        .renderingMode(.template)
+        .resizable()
+        .frame(width: size, height: size)
+}
+
+// MARK: - Helper Components
+
+private struct IconCircle: View {
+    let lucideImage: NSImage
+    let color: Color
+    var size: CGFloat = DesignMetrics.iconCircleSize
+
+    var body: some View {
+        lucideIcon(lucideImage, size: size * 0.5)
+            .foregroundStyle(.white)
+            .frame(width: size, height: size)
+            .background(color, in: Circle())
+    }
+}
+
+private struct StatusPill<Leading: View, Trailing: View>: View {
+    let color: Color
+    var isSolid: Bool = false
+    @ViewBuilder let leading: Leading
+    @ViewBuilder let trailing: Trailing
+
+    var body: some View {
+        HStack {
+            leading
+            Spacer()
+            trailing
+        }
+        .padding(8)
+        .background(isSolid ? color : color.opacity(0.2), in: Capsule())
+        .overlay {
+            if !isSolid {
+                Capsule().strokeBorder(color, lineWidth: 1)
+            }
+        }
+    }
+}
+
+private struct BreadcrumbStep: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 9))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(DesignColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 6))
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .strokeBorder(DesignColors.cardBorder.opacity(0.3), lineWidth: 0.5)
+            )
+    }
+}
+
+private struct SidebarTabButton: View {
+    let title: String
+    let lucideImage: NSImage
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                lucideIcon(lucideImage, size: 16)
+                    .foregroundStyle(isSelected ? DesignColors.accentBlue : DesignColors.secondaryText)
+                Text(title)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(height: 60)
+            .padding(.horizontal, 16)
+            .background(
+                RoundedRectangle(cornerRadius: DesignMetrics.tabCornerRadius)
+                    .fill(isSelected ? .black : DesignColors.tabUnselected)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignMetrics.tabCornerRadius)
+                    .strokeBorder(
+                        isSelected ? DesignColors.accentBlue : .clear,
+                        lineWidth: isSelected ? 2 : 0
+                    )
+            )
+            .shadow(
+                color: isSelected ? .black.opacity(0.5) : .clear,
+                radius: isSelected ? 16 : 0,
+                y: isSelected ? 12 : 0
+            )
+        }
+        .buttonStyle(.plain)
+        .focusEffectDisabled()
+    }
+}
+
+// MARK: - SettingsView
 
 struct SettingsView: View {
     let updater: SPUUpdater
@@ -21,11 +169,11 @@ struct SettingsView: View {
             }
         }
 
-        var icon: String {
+        var lucideImage: NSImage {
             switch self {
-            case .general: "gearshape"
-            case .help: "book"
-            case .about: "info.circle"
+            case .general: Lucide.copy
+            case .help: Lucide.album
+            case .about: Lucide.mousePointerClick
             }
         }
     }
@@ -36,16 +184,20 @@ struct SettingsView: View {
     var body: some View {
         HStack(spacing: 0) {
             sidebar
-            Divider()
             tabContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(width: 560)
-        .frame(minHeight: 520)
+        .background(DesignColors.background)
+        .frame(width: DesignMetrics.windowWidth)
+        .frame(minHeight: DesignMetrics.windowMinHeight)
+        .preferredColorScheme(.dark)
         .onAppear {
             viewModel.onAppear()
             NSApp.activate()
             if let window = NSApp.windows.first(where: { $0.isVisible && $0.level == .normal }) {
+                window.titlebarAppearsTransparent = true
+                window.titleVisibility = .hidden
+                window.styleMask.insert(.fullSizeContentView)
                 window.orderFrontRegardless()
             }
         }
@@ -55,44 +207,61 @@ struct SettingsView: View {
     // MARK: - Sidebar
 
     private var sidebar: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 16) {
             ForEach(SettingsTab.allCases, id: \.self) { tab in
-                Button {
+                SidebarTabButton(
+                    title: tab.title,
+                    lucideImage: tab.lucideImage,
+                    isSelected: selectedTab == tab
+                ) {
                     selectedTab = tab
-                } label: {
-                    Label(tab.title, systemImage: tab.icon)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 8)
-                        .background(
-                            selectedTab == tab
-                                ? AnyShapeStyle(.selection)
-                                : AnyShapeStyle(.clear),
-                            in: .rect(cornerRadius: 6)
-                        )
-                        .contentShape(.rect)
                 }
-                .buttonStyle(.plain)
-                .focusEffectDisabled()
             }
             Spacer()
         }
-        .padding(8)
-        .frame(width: 160)
+        .padding(.horizontal, 20)
+        .padding(.top, 40)
+        .frame(width: DesignMetrics.sidebarWidth)
+        .background(
+            LinearGradient(
+                colors: [DesignColors.sidebarTop, DesignColors.sidebarBottom],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
     }
 
     // MARK: - Tab Content
 
     @ViewBuilder
     private var tabContent: some View {
-        switch selectedTab {
-        case .general:
-            GeneralTab(viewModel: viewModel)
-        case .help:
-            InstructionsTab()
-        case .about:
-            AboutTab(updater: updater)
+        VStack(spacing: 0) {
+            contentHeader
+            switch selectedTab {
+            case .general:
+                GeneralTab(viewModel: viewModel)
+            case .help:
+                InstructionsTab()
+            case .about:
+                AboutTab(updater: updater)
+            }
         }
+    }
+
+    private var contentHeader: some View {
+        HStack {
+            Text("NothingHere")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundStyle(.white)
+            Spacer()
+            lucideIcon(Lucide.mousePointerClick, size: 12)
+                .foregroundStyle(.white)
+                .padding(6)
+                .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 8))
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 16)
+        .padding(.bottom, 8)
     }
 }
 
@@ -105,98 +274,115 @@ private struct GeneralTab: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 12) {
                 permissionCard
                 hotkeyCard
                 guardModeCard
                 documentCard
             }
-            .padding(20)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 20)
         }
     }
 
     // MARK: - Permission Card
 
     private var permissionCard: some View {
-        SettingsCard(header: "Permissions") {
+        SettingsCard(header: "Permissions", lucideIcon: Lucide.screenShare) {
             if viewModel.isAccessibilityGranted {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                        .font(.title3)
-                    Text("Accessibility")
-                        .font(.body)
-                    Spacer()
-                    Text("Granted")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                permissionGrantedContent
             } else {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.red)
-                            .font(.title3)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Accessibility")
-                                .font(.body)
-                            Text("Required to hide windows and register global hotkey")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-
-                    Button("Grant Permission") {
-                        viewModel.grantPermission()
-                    }
-                    .controlSize(.regular)
-                    .buttonStyle(.borderedProminent)
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("If the dialog doesn't appear:")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text(
-                            "System Settings \u{2192} Privacy & Security \u{2192} Accessibility \u{2192} Enable \"NothingHere\""
-                        )
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    }
-
-                    Button("Open System Settings") {
-                        viewModel.openPermissionSettings()
-                    }
-                    .buttonStyle(.link)
-                    .font(.caption)
-                }
-                .padding(12)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.orange.opacity(0.08), in: .rect(cornerRadius: 8))
+                permissionDeniedContent
             }
+        }
+    }
+
+    private var permissionGrantedContent: some View {
+        StatusPill(color: DesignColors.successGreen) {
+            HStack(spacing: 12) {
+                IconCircle(lucideImage: Lucide.lockKeyhole, color: DesignColors.successGreen)
+                Text("Accessibility")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+        } trailing: {
+            Text("Granted")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(DesignColors.successGreen)
+        }
+    }
+
+    private var permissionDeniedContent: some View {
+        VStack(spacing: 12) {
+            StatusPill(color: DesignColors.warningOrange, isSolid: true) {
+                HStack(spacing: 12) {
+                    IconCircle(lucideImage: Lucide.lockKeyhole, color: DesignColors.darkOrangeCircle)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Accessibility")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(.white)
+                        Text("Required to hide windows and register global hotkey")
+                            .font(.system(size: 9))
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
+                }
+            } trailing: {
+                Button {
+                    viewModel.grantPermission()
+                } label: {
+                    Text("Grant Permission")
+                        .font(.system(size: 10, weight: .heavy))
+                        .foregroundStyle(DesignColors.warningOrange)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(.white, in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+
+            Text("If the dialog doesn't appear, please follow the troubleshooting steps below")
+                .font(.system(size: 9))
+                .foregroundStyle(DesignColors.secondaryText)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+
+            HStack(spacing: 6) {
+                BreadcrumbStep(text: "System Settings")
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 7, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.5))
+                BreadcrumbStep(text: "Privacy & Security")
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 7, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.5))
+                BreadcrumbStep(text: "Accessibility")
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 7, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.5))
+                BreadcrumbStep(text: "NothingHere")
+            }
+
+            Button {
+                viewModel.openPermissionSettings()
+            } label: {
+                Text("Open System Settings")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(DesignColors.accentBlue)
+            }
+            .buttonStyle(.plain)
         }
     }
 
     // MARK: - Hotkey Card
 
     private var hotkeyCard: some View {
-        SettingsCard(header: "Panic Hotkey") {
+        SettingsCard(header: "Panic Hotkey", lucideIcon: Lucide.grip) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 8) {
                     hotkeyDisplay
                         .popover(isPresented: Bindable(viewModel.hotkeyRecorder).showRecordingPopover) {
                             hotkeyRecordingPopover
                         }
-
-                    if viewModel.hotkeyRecorder.currentKeyName != nil {
-                        Button {
-                            viewModel.hotkeyRecorder.startRecordingHotkey()
-                        } label: {
-                            Image(systemName: "arrow.counterclockwise")
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                        .help("Change shortcut")
-                    }
                 }
 
                 if let conflict = viewModel.hotkeyRecorder.hotkeyConflictMessage {
@@ -213,15 +399,37 @@ private struct GeneralTab: View {
             viewModel.hotkeyRecorder.startRecordingHotkey()
         } label: {
             if let keyName = viewModel.hotkeyRecorder.currentKeyName {
-                HStack(spacing: 4) {
+                HStack(spacing: 8) {
                     ForEach(viewModel.hotkeyRecorder.currentModifierSymbols, id: \.self) { symbol in
-                        KeyBadge(text: symbol)
+                        KeyBadge(text: symbol, style: .large)
                     }
-                    KeyBadge(text: keyName)
+                    KeyBadge(text: keyName, style: .large)
+
+                    Button {
+                        viewModel.hotkeyRecorder.startRecordingHotkey()
+                    } label: {
+                        lucideIcon(Lucide.iterationCw, size: 14)
+                            .foregroundStyle(.white)
+                            .frame(
+                                width: DesignMetrics.keyBadgeSize,
+                                height: DesignMetrics.keyBadgeSize
+                            )
+                            .background(
+                                DesignColors.accentBlue,
+                                in: RoundedRectangle(cornerRadius: 6)
+                            )
+                            .shadow(
+                                color: DesignColors.accentBlue.opacity(0.3),
+                                radius: 12,
+                                y: 6
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .help("Change shortcut")
                 }
             } else {
                 Text("Record Shortcut")
-                    .font(.callout)
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
@@ -305,28 +513,64 @@ private struct GeneralTab: View {
     // MARK: - Guard Mode Card
 
     private var guardModeCard: some View {
-        SettingsCard(header: "Guard Mode") {
-            VStack(alignment: .leading, spacing: 12) {
+        SettingsCard(header: "Guard Mode", lucideIcon: Lucide.shield) {
+            VStack(spacing: 12) {
                 Text(
                     "When armed, the very next key press will trigger the panic sequence and automatically disarm. Any key works \u{2014} no modifier needed. You can also arm from the menu bar."
                 )
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.system(size: 10))
+                .foregroundStyle(DesignColors.secondaryText)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
 
-                HStack {
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(guardMode.isArmed ? .red : Color(.separatorColor))
-                            .frame(width: 8, height: 8)
-                        Text(guardMode.isArmed ? "Armed" : "Disarmed")
-                            .font(.body)
-                            .foregroundStyle(guardMode.isArmed ? .primary : .secondary)
+                if guardMode.isArmed {
+                    StatusPill(color: DesignColors.successGreen) {
+                        HStack(spacing: 12) {
+                            IconCircle(lucideImage: Lucide.shieldCheck, color: DesignColors.successGreen)
+                            Text("Armed")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+                    } trailing: {
+                        Button {
+                            guardMode.toggle()
+                        } label: {
+                            Text("Disarm")
+                                .font(.system(size: 10, weight: .heavy))
+                                .foregroundStyle(DesignColors.cardFill)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(.white, in: Capsule())
+                        }
+                        .buttonStyle(.plain)
                     }
-                    Spacer()
-                    Button(guardMode.isArmed ? "Disarm" : "Arm") {
-                        guardMode.toggle()
+                } else {
+                    StatusPill(color: DesignColors.secondaryText) {
+                        HStack(spacing: 12) {
+                            IconCircle(
+                                lucideImage: Lucide.shield,
+                                color: DesignColors.secondaryText.opacity(0.5)
+                            )
+                            Text("Disarmed")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(.white.opacity(0.6))
+                        }
+                    } trailing: {
+                        Button {
+                            guardMode.toggle()
+                        } label: {
+                            Text("Arm")
+                                .font(.system(size: 10, weight: .heavy))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(
+                                    DesignColors.secondaryText.opacity(0.5),
+                                    in: Capsule()
+                                )
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .controlSize(.small)
                 }
             }
         }
@@ -335,49 +579,96 @@ private struct GeneralTab: View {
     // MARK: - Document Card
 
     private var documentCard: some View {
-        SettingsCard(header: "Cover Document") {
+        SettingsCard(header: "Cover Document", lucideIcon: Lucide.filePlus) {
             VStack(alignment: .leading, spacing: 12) {
-                Toggle(
-                    "Open a file when panic is triggered",
-                    isOn: Bindable(viewModel.documentManager).openDocumentEnabled
-                )
-                .toggleStyle(.switch)
+                StatusPill(color: DesignColors.accentBlue) {
+                    HStack(spacing: 12) {
+                        IconCircle(lucideImage: Lucide.fileCheck, color: DesignColors.accentBlue)
+                        Text("Open a file when panic is triggered")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                } trailing: {
+                    Toggle(
+                        "",
+                        isOn: Bindable(viewModel.documentManager).openDocumentEnabled
+                    )
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+                    .controlSize(.small)
+                    .tint(DesignColors.accentBlue)
+                }
 
                 if let url = viewModel.documentManager.documentURL {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 12) {
                         fileIcon(for: url)
                             .resizable()
-                            .frame(width: 32, height: 32)
-                        VStack(alignment: .leading, spacing: 2) {
+                            .frame(width: 28, height: 28)
+                        VStack(alignment: .leading, spacing: 1) {
                             Text(url.lastPathComponent)
-                                .font(.body)
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(.white)
                             Text(url.deletingLastPathComponent().path)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .font(.system(size: 9))
+                                .foregroundStyle(.white.opacity(0.6))
                                 .lineLimit(1)
                                 .truncationMode(.middle)
                         }
                         Spacer()
-                        Button("Change") {
+
+                        Button {
                             viewModel.documentManager.pickDocument()
+                        } label: {
+                            Text("Change")
+                                .font(.system(size: 10, weight: .heavy))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 8))
+                                .shadow(
+                                    color: DesignColors.accentBlue.opacity(0.3),
+                                    radius: 12,
+                                    y: 6
+                                )
                         }
-                        .controlSize(.small)
+                        .buttonStyle(.plain)
 
                         Button {
                             viewModel.documentManager.removeDocument()
                         } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.secondary)
+                            lucideIcon(Lucide.fileX, size: 12)
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(DesignColors.warningOrange, in: RoundedRectangle(cornerRadius: 12))
+                                .shadow(
+                                    color: DesignColors.warningOrange.opacity(0.3),
+                                    radius: 12,
+                                    y: 6
+                                )
                         }
                         .buttonStyle(.plain)
                         .help("Remove document")
                     }
+                    .padding(12)
+                    .background(DesignColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(DesignColors.cardBorder.opacity(0.3), lineWidth: 0.5)
+                    )
                     .opacity(viewModel.documentManager.openDocumentEnabled ? 1 : 0.5)
                 } else {
-                    Button("Choose File\u{2026}") {
+                    Button {
                         viewModel.documentManager.pickDocument()
+                    } label: {
+                        Text("Choose File\u{2026}")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(DesignColors.accentBlue, in: Capsule())
                     }
-                    .controlSize(.small)
+                    .buttonStyle(.plain)
                 }
 
                 if !viewModel.documentManager.isDocumentValid {
@@ -401,14 +692,32 @@ private struct GeneralTab: View {
 // MARK: - KeyBadge
 
 struct KeyBadge: View {
+    enum Style {
+        case compact, large
+    }
+
     let text: String
+    var style: Style = .compact
 
     var body: some View {
-        Text(text)
-            .font(.system(size: 16, weight: .medium, design: .rounded))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(.quaternary, in: .rect(cornerRadius: 6))
+        switch style {
+        case .compact:
+            Text(text)
+                .font(.system(size: 16, weight: .medium, design: .rounded))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(.quaternary, in: .rect(cornerRadius: 6))
+        case .large:
+            Text(text)
+                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white)
+                .frame(width: DesignMetrics.keyBadgeSize, height: DesignMetrics.keyBadgeSize)
+                .background(DesignColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 6))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .strokeBorder(DesignColors.cardBorder.opacity(0.3), lineWidth: 0.5)
+                )
+        }
     }
 }
 
@@ -416,21 +725,39 @@ struct KeyBadge: View {
 
 struct SettingsCard<Content: View>: View {
     let header: String
+    var lucideIcon: NSImage?
     @ViewBuilder let content: Content
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(header)
-                .font(.headline)
-                .foregroundStyle(.primary)
+    init(header: String, lucideIcon: NSImage? = nil, @ViewBuilder content: () -> Content) {
+        self.header = header
+        self.lucideIcon = lucideIcon
+        self.content = content()
+    }
 
-            VStack(alignment: .leading, spacing: 0) {
-                content
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 8) {
+                if let lucideIcon {
+                    Image(nsImage: lucideIcon)
+                        .renderingMode(.template)
+                        .resizable()
+                        .frame(width: 14, height: 14)
+                        .foregroundStyle(DesignColors.accentBlue)
+                }
+                Text(header)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white)
             }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.regularMaterial, in: .rect(cornerRadius: 10))
+
+            content
         }
+        .padding(DesignMetrics.cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(DesignColors.cardFill, in: RoundedRectangle(cornerRadius: DesignMetrics.cardCornerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignMetrics.cardCornerRadius)
+                .strokeBorder(DesignColors.cardBorder.opacity(0.3), lineWidth: 0.5)
+        )
     }
 }
 

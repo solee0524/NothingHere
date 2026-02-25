@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		BDB2936F2F3D9E8A005D5E0A /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = BDB2936E2F3D9E8A005D5E0A /* Sparkle */; };
+		BDB293722F3D9F01005D5E0A /* LucideIcons in Frameworks */ = {isa = PBXBuildFile; productRef = BDB293712F3D9F01005D5E0A /* LucideIcons */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +41,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BDB293722F3D9F01005D5E0A /* LucideIcons in Frameworks */,
 				BDB2936F2F3D9E8A005D5E0A /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -83,6 +85,7 @@
 			);
 			name = NothingHere;
 			packageProductDependencies = (
+				BDB293712F3D9F01005D5E0A /* LucideIcons */,
 				BDB2936E2F3D9E8A005D5E0A /* Sparkle */,
 			);
 			productName = NothingHere;
@@ -114,6 +117,7 @@
 			mainGroup = BDB2926C2F39935D005D5E0A;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				BDB293702F3D9F00005D5E0A /* XCRemoteSwiftPackageReference "lucide-icons-swift" */,
 				BDB2936D2F3D9E89005D5E0A /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -375,6 +379,14 @@
 				minimumVersion = 2.8.1;
 			};
 		};
+		BDB293702F3D9F00005D5E0A /* XCRemoteSwiftPackageReference "lucide-icons-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/JakubMazur/lucide-icons-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.575.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -382,6 +394,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = BDB2936D2F3D9E89005D5E0A /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		BDB293712F3D9F01005D5E0A /* LucideIcons */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BDB293702F3D9F00005D5E0A /* XCRemoteSwiftPackageReference "lucide-icons-swift" */;
+			productName = LucideIcons;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
