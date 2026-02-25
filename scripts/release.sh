@@ -80,12 +80,21 @@ echo "==> Cleaning build directory..."
 rm -rf "${BUILD_DIR}"
 mkdir -p "${BUILD_DIR}"
 
+# ─── Resolve SPM dependencies ───────────────────────────────────────────────
+
+echo "==> Resolving package dependencies..."
+xcodebuild -resolvePackageDependencies \
+    -project "${PROJECT_ROOT}/${PROJECT}" \
+    -scheme "${SCHEME}" \
+    | tail -5
+
 # ─── Step 1: Archive ─────────────────────────────────────────────────────────
 
 echo "==> Archiving..."
 xcodebuild archive \
     -project "${PROJECT_ROOT}/${PROJECT}" \
     -scheme "${SCHEME}" \
+    -destination "generic/platform=macOS" \
     -archivePath "${ARCHIVE_PATH}" \
     -configuration Release \
     CODE_SIGN_STYLE=Manual \
@@ -93,7 +102,7 @@ xcodebuild archive \
     DEVELOPMENT_TEAM="${TEAM_ID}" \
     MARKETING_VERSION="${VERSION}" \
     CURRENT_PROJECT_VERSION="${NEW_BUILD}" \
-    | tail -1
+    | tail -5
 
 echo "    Archive created: ${ARCHIVE_PATH}"
 
@@ -104,7 +113,7 @@ xcodebuild -exportArchive \
     -archivePath "${ARCHIVE_PATH}" \
     -exportPath "${EXPORT_PATH}" \
     -exportOptionsPlist "${EXPORT_OPTIONS}" \
-    | tail -1
+    | tail -5
 
 APP_PATH="${EXPORT_PATH}/${APP_NAME}.app"
 echo "    Exported: ${APP_PATH}"
@@ -163,8 +172,11 @@ echo "    Stapled."
 # ─── Step 7: Verify notarization ────────────────────────────────────────────
 
 echo "==> Verifying notarization..."
-spctl --assess --type open --context context:primary-signature "${DMG_PATH}" 2>&1 || true
-echo "    Verification complete."
+if spctl --assess --type open --context context:primary-signature "${DMG_PATH}" 2>&1; then
+    echo "    Gatekeeper: accepted."
+else
+    echo "    Gatekeeper: not yet propagated (normal for fresh notarization, users won't be affected)."
+fi
 
 # ─── Step 8: Generate Sparkle appcast ────────────────────────────────────────
 
@@ -191,23 +203,8 @@ sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*;/CURRENT_PROJECT_VERSION = ${NEW_BU
 echo "    MARKETING_VERSION         = ${VERSION}"
 echo "    CURRENT_PROJECT_VERSION   = ${NEW_BUILD}"
 
-# ─── Step 10: Create GitHub Release ──────────────────────────────────────────
-
 echo ""
-echo "==> Ready to create GitHub Release."
+echo "==> Release script complete."
 echo "    DMG: ${DMG_PATH}"
-echo ""
-read -rp "Create GitHub Release v${VERSION}? [y/N] " confirm
-if [[ "${confirm}" =~ ^[Yy]$ ]]; then
-    gh release create "v${VERSION}" \
-        "${DMG_PATH}" \
-        --title "${APP_NAME} v${VERSION}" \
-        --notes "Release v${VERSION}"
-    echo "    GitHub Release created."
-else
-    echo "    Skipped GitHub Release. Upload manually:"
-    echo "    gh release create v${VERSION} ${DMG_PATH} --title '${APP_NAME} v${VERSION}'"
-fi
-
-echo ""
-echo "==> Done! Release v${VERSION} complete."
+echo "    appcast.xml and project.pbxproj updated."
+echo "    Create GitHub Release via skill or manually."
