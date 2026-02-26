@@ -802,21 +802,41 @@ struct SettingsCard<Content: View>: View {
 private struct WindowAccessor: NSViewRepresentable {
     var configure: (NSWindow) -> Void
 
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
         DispatchQueue.main.async {
-            if let window = view.window {
-                configure(window)
-            }
+            guard let window = view.window else { return }
+            configure(window)
+            context.coordinator.observe(window)
         }
         return view
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
         DispatchQueue.main.async {
-            if let window = nsView.window {
-                configure(window)
+            guard let window = nsView.window else { return }
+            configure(window)
+        }
+    }
+
+    final class Coordinator: NSObject {
+        private var observation: NSKeyValueObservation?
+
+        func observe(_ window: NSWindow) {
+            observation = window.observe(\.title, options: .new) { win, _ in
+                if !win.title.isEmpty {
+                    win.title = ""
+                    win.titleVisibility = .hidden
+                }
             }
+        }
+
+        deinit {
+            observation?.invalidate()
         }
     }
 }
