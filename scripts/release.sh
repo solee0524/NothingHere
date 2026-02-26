@@ -80,6 +80,13 @@ echo "==> Cleaning build directory..."
 rm -rf "${BUILD_DIR}"
 mkdir -p "${BUILD_DIR}"
 
+# Clean Xcode DerivedData for this project to avoid stale SPM signing issues
+DERIVED_DATA=$(xcodebuild -project "${PROJECT_ROOT}/${PROJECT}" -showBuildSettings 2>/dev/null | grep -m1 BUILD_DIR | sed 's/.*= //' | sed 's|/Build/.*||')
+if [[ -n "${DERIVED_DATA}" && -d "${DERIVED_DATA}" ]]; then
+    echo "    Cleaning DerivedData: ${DERIVED_DATA}"
+    rm -rf "${DERIVED_DATA}"
+fi
+
 # ─── Resolve SPM dependencies ───────────────────────────────────────────────
 
 echo "==> Resolving package dependencies..."
