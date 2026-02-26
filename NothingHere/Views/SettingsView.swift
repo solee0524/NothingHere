@@ -187,7 +187,20 @@ struct SettingsView: View {
             tabContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .ignoresSafeArea()
         .background(DesignColors.background)
+        .background {
+            WindowAccessor { window in
+                window.titlebarAppearsTransparent = true
+                window.titleVisibility = .hidden
+                window.title = ""
+                window.styleMask.insert(.fullSizeContentView)
+                window.titlebarSeparatorStyle = .none
+                window.isMovableByWindowBackground = true
+                window.backgroundColor = .clear
+            }
+        }
+        .toolbarBackground(.hidden, for: .windowToolbar)
         .frame(width: DesignMetrics.windowWidth)
         .frame(minHeight: DesignMetrics.windowMinHeight)
         .preferredColorScheme(.dark)
@@ -195,9 +208,6 @@ struct SettingsView: View {
             viewModel.onAppear()
             NSApp.activate()
             if let window = NSApp.windows.first(where: { $0.isVisible && $0.level == .normal }) {
-                window.titlebarAppearsTransparent = true
-                window.titleVisibility = .hidden
-                window.styleMask.insert(.fullSizeContentView)
                 window.orderFrontRegardless()
             }
         }
@@ -220,13 +230,17 @@ struct SettingsView: View {
             Spacer()
         }
         .padding(.horizontal, 20)
-        .padding(.top, 40)
+        .padding(.top, 60)
         .frame(width: DesignMetrics.sidebarWidth)
         .background(
             LinearGradient(
-                colors: [DesignColors.sidebarTop, DesignColors.sidebarBottom],
-                startPoint: .top,
-                endPoint: .bottom
+                stops: [
+                    .init(color: DesignColors.sidebarTop, location: 0),
+                    .init(color: DesignColors.sidebarBottom, location: 0.5),
+                    .init(color: DesignColors.sidebarBottom, location: 1.0),
+                ],
+                startPoint: .trailing,
+                endPoint: .leading
             )
         )
     }
@@ -254,13 +268,13 @@ struct SettingsView: View {
                 .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(.white)
             Spacer()
-            lucideIcon(Lucide.mousePointerClick, size: 12)
+            lucideIcon(Lucide.mousePointerClick, size: 14)
                 .foregroundStyle(.white)
                 .padding(6)
-                .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 8))
+                .background(DesignColors.accentBlue, in: Circle())
         }
         .padding(.horizontal, 20)
-        .padding(.top, 16)
+        .padding(.top, 28)
         .padding(.bottom, 8)
     }
 }
@@ -579,11 +593,14 @@ private struct GeneralTab: View {
     // MARK: - Document Card
 
     private var documentCard: some View {
-        SettingsCard(header: "Cover Document", lucideIcon: Lucide.filePlus) {
+        let isEnabled = viewModel.documentManager.openDocumentEnabled
+        let pillColor = isEnabled ? DesignColors.accentBlue : DesignColors.secondaryText
+
+        return SettingsCard(header: "Cover Document", lucideIcon: Lucide.filePlus) {
             VStack(alignment: .leading, spacing: 12) {
-                StatusPill(color: DesignColors.accentBlue) {
+                StatusPill(color: pillColor) {
                     HStack(spacing: 12) {
-                        IconCircle(lucideImage: Lucide.fileCheck, color: DesignColors.accentBlue)
+                        IconCircle(lucideImage: Lucide.fileCheck, color: pillColor)
                         Text("Open a file when panic is triggered")
                             .font(.system(size: 11, weight: .bold))
                             .foregroundStyle(.white)
@@ -658,17 +675,36 @@ private struct GeneralTab: View {
                     )
                     .opacity(viewModel.documentManager.openDocumentEnabled ? 1 : 0.5)
                 } else {
-                    Button {
-                        viewModel.documentManager.pickDocument()
-                    } label: {
-                        Text("Choose File\u{2026}")
-                            .font(.system(size: 11, weight: .semibold))
+                    HStack(spacing: 12) {
+                        lucideIcon(Lucide.folderPlus, size: 28)
+                            .foregroundStyle(DesignColors.accentBlue)
+                        Text("Add File")
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundStyle(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(DesignColors.accentBlue, in: Capsule())
+                        Spacer()
+                        Button {
+                            viewModel.documentManager.pickDocument()
+                        } label: {
+                            Text("Choose File")
+                                .font(.system(size: 10, weight: .heavy))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 8))
+                                .shadow(
+                                    color: DesignColors.accentBlue.opacity(0.3),
+                                    radius: 12,
+                                    y: 6
+                                )
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
+                    .padding(12)
+                    .background(DesignColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(DesignColors.cardBorder.opacity(0.3), lineWidth: 0.5)
+                    )
                 }
 
                 if !viewModel.documentManager.isDocumentValid {
@@ -756,8 +792,32 @@ struct SettingsCard<Content: View>: View {
         .background(DesignColors.cardFill, in: RoundedRectangle(cornerRadius: DesignMetrics.cardCornerRadius))
         .overlay(
             RoundedRectangle(cornerRadius: DesignMetrics.cardCornerRadius)
-                .strokeBorder(DesignColors.cardBorder.opacity(0.3), lineWidth: 0.5)
+                .strokeBorder(DesignColors.cardBorder, lineWidth: 1)
         )
+    }
+}
+
+// MARK: - WindowAccessor
+
+private struct WindowAccessor: NSViewRepresentable {
+    var configure: (NSWindow) -> Void
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async {
+            if let window = view.window {
+                configure(window)
+            }
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        DispatchQueue.main.async {
+            if let window = nsView.window {
+                configure(window)
+            }
+        }
     }
 }
 
