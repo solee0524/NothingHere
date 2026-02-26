@@ -5,6 +5,7 @@
 //  Created by libo on 2026/2/9.
 //
 
+import LucideIcons
 import Sparkle
 import SwiftUI
 
@@ -18,11 +19,18 @@ struct NothingHereApp: App {
         MenuBarExtra {
             MenuBarContentView(appDelegate: appDelegate)
         } label: {
-            Image(systemName: guardMode.isArmed ? "eye.slash.fill" : "eye.slash")
+            Image(nsImage: menuBarIcon)
         }
         Settings {
             SettingsView(updater: appDelegate.updaterController.updater)
         }
+    }
+
+    private var menuBarIcon: NSImage {
+        let icon = guardMode.isArmed ? Lucide.shieldAlert : Lucide.eyeOff
+        icon.isTemplate = true
+        icon.size = NSSize(width: 18, height: 18)
+        return icon
     }
 }
 

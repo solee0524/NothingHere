@@ -13,10 +13,10 @@ private let logger = Logger(subsystem: "boli.NothingHere", category: "AppDelegat
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
-    let updaterController = SPUStandardUpdaterController(
+    private(set) lazy var updaterController = SPUStandardUpdaterController(
         startingUpdater: true,
         updaterDelegate: nil,
-        userDriverDelegate: nil
+        userDriverDelegate: self
     )
 
     private let hotkeyService = HotkeyService()
@@ -31,6 +31,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         logger.info("Application did finish launching")
         NSApp.setActivationPolicy(.accessory)
+
+        // Trigger lazy init so auto-update checking starts immediately
+        _ = updaterController
 
         // Wire hotkey to panic
         hotkeyService.onHotkeyTriggered = { [weak self] in
@@ -222,5 +225,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 NSApp.setActivationPolicy(.accessory)
             }
         }
+    }
+}
+
+// MARK: - Sparkle User Driver Delegate
+
+extension AppDelegate: SPUStandardUserDriverDelegate {
+    func standardUserDriverWillHandleShowingUpdate(
+        _ handleShowingUpdate: Bool,
+        forUpdate update: SUAppcastItem,
+        state: SPUUserUpdateState
+    ) {
+        NSApp.setActivationPolicy(.regular)
+        NSApp.activate()
     }
 }
