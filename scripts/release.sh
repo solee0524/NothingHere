@@ -100,9 +100,10 @@ xcodebuild archive \
     CODE_SIGN_STYLE=Manual \
     CODE_SIGN_IDENTITY="Developer ID Application" \
     DEVELOPMENT_TEAM="${TEAM_ID}" \
+    'OTHER_CODE_SIGN_FLAGS=--timestamp' \
     MARKETING_VERSION="${VERSION}" \
     CURRENT_PROJECT_VERSION="${NEW_BUILD}" \
-    | tail -5
+    | tail -10
 
 echo "    Archive created: ${ARCHIVE_PATH}"
 
