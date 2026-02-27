@@ -27,6 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var onboardingWindow: NSWindow?
     var openSettingsAction: (() -> Void)?
+    var pendingSettingsOpen = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         logger.info("Application did finish launching")
@@ -128,14 +129,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let viewModel = OnboardingViewModel()
         viewModel.onComplete = { [weak self] in
+            if viewModel.requestsSettingsOpen {
+                self?.pendingSettingsOpen = true
+            }
             self?.onboardingWindow?.close()
         }
 
         let hostingView = NSHostingView(rootView: OnboardingView(viewModel: viewModel))
-        hostingView.frame = NSRect(x: 0, y: 0, width: 500, height: 460)
+        hostingView.frame = NSRect(x: 0, y: 0, width: 540, height: 540)
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 500, height: 460),
+            contentRect: NSRect(x: 0, y: 0, width: 540, height: 540),
             styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -143,6 +147,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.isMovableByWindowBackground = true
+        window.backgroundColor = NSColor(red: 0x22 / 255.0, green: 0x22 / 255.0, blue: 0x22 / 255.0, alpha: 1.0)
         window.contentView = hostingView
         window.center()
         window.isReleasedWhenClosed = false
@@ -217,6 +222,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func windowWillClose(_ notification: Notification) {
+        let closingWindow = notification.object as? NSWindow
+
+        if closingWindow === onboardingWindow && pendingSettingsOpen {
+            pendingSettingsOpen = false
+            DispatchQueue.main.async { [weak self] in
+                self?.openSettingsWindow()
+            }
+            return
+        }
+
         DispatchQueue.main.async {
             let hasVisibleWindows = NSApp.windows.contains {
                 $0.isVisible && $0.level == .normal && !$0.isMiniaturized

@@ -23,6 +23,7 @@ final class OnboardingViewModel {
     let documentManager = CoverDocumentManager.shared
 
     var onComplete: (() -> Void)?
+    var requestsSettingsOpen = false
 
     // MARK: - Navigation
 

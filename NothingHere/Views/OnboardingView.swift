@@ -3,10 +3,135 @@
 //  NothingHere
 //
 
+import LucideIcons
 import SwiftUI
+
+// MARK: - Design Tokens
+
+private enum OnboardingColors {
+    static let background = Color(hex: 0x222222)
+    static let accentBlue = Color(hex: 0x4584EE)
+    static let warningOrange = Color(hex: 0xD54713)
+    static let darkOrangeCircle = Color(hex: 0x622008)
+    static let successGreen = Color(hex: 0x17D952)
+    static let secondaryText = Color(hex: 0x666666)
+    static let dotInactive = Color(hex: 0x444444)
+    static let keyBadgeFill = Color(hex: 0x222222)
+    static let dividerColor = Color(hex: 0x666666)
+    static let disabledArrow = Color(hex: 0x333333)
+    static let cardBorder = Color(hex: 0x444444)
+}
+
+private enum OnboardingMetrics {
+    static let windowSize: CGFloat = 540
+    static let stepIconSize: CGFloat = 68
+    static let navButtonSize: CGFloat = 36
+    static let dotSize: CGFloat = 8
+    static let keyBadgeSize: CGFloat = 48
+    static let keyBadgeSizeSmall: CGFloat = 32
+    static let appIconSize: CGFloat = 68
+    static let appIconRadius: CGFloat = 16
+    static let iconCircleSize: CGFloat = 32
+}
+
+// MARK: - Color Extension
+
+private extension Color {
+    init(hex: UInt, opacity: Double = 1.0) {
+        self.init(
+            red: Double((hex >> 16) & 0xFF) / 255.0,
+            green: Double((hex >> 8) & 0xFF) / 255.0,
+            blue: Double(hex & 0xFF) / 255.0,
+            opacity: opacity
+        )
+    }
+}
+
+// MARK: - Lucide Helper
+
+private func lucideIcon(_ image: NSImage, size: CGFloat = 14) -> some View {
+    Image(nsImage: image)
+        .renderingMode(.template)
+        .resizable()
+        .frame(width: size, height: size)
+}
+
+// MARK: - Navigation Direction
+
+private enum NavigationDirection {
+    case forward, backward
+}
+
+// MARK: - Helper Components
+
+private struct StepIcon: View {
+    let lucideImage: NSImage
+
+    var body: some View {
+        lucideIcon(lucideImage, size: OnboardingMetrics.stepIconSize)
+            .foregroundStyle(OnboardingColors.accentBlue)
+    }
+}
+
+private struct OnboardingIconCircle: View {
+    let lucideImage: NSImage
+    let color: Color
+    var size: CGFloat = OnboardingMetrics.iconCircleSize
+
+    var body: some View {
+        lucideIcon(lucideImage, size: size * 0.5)
+            .foregroundStyle(.white)
+            .frame(width: size, height: size)
+            .background(color, in: Circle())
+    }
+}
+
+private struct OnboardingKeyBadge: View {
+    enum Content {
+        case icon(NSImage)
+        case text(String)
+    }
+
+    let content: Content
+    var size: CGFloat = OnboardingMetrics.keyBadgeSize
+
+    var body: some View {
+        Group {
+            switch content {
+            case .icon(let image):
+                lucideIcon(image, size: size * 0.4)
+                    .foregroundStyle(.white)
+            case .text(let text):
+                Text(text)
+                    .font(.system(size: size * 0.4, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+            }
+        }
+        .frame(width: size, height: size)
+        .background(OnboardingColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 6))
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .strokeBorder(OnboardingColors.cardBorder.opacity(0.3), lineWidth: 0.5)
+        )
+    }
+}
+
+/// Maps a modifier symbol (⌃, ⇧, ⌘, ⌥) to its corresponding Lucide icon content.
+private func modifierBadgeContent(for symbol: String) -> OnboardingKeyBadge.Content {
+    switch symbol {
+    case "⌃": .icon(Lucide.chevronUp)
+    case "⇧": .icon(Lucide.arrowBigUp)
+    case "⌘": .icon(Lucide.command)
+    case "⌥": .icon(Lucide.option)
+    default: .text(symbol)
+    }
+}
+
+// MARK: - OnboardingView
 
 struct OnboardingView: View {
     @State var viewModel = OnboardingViewModel()
+    @State private var navigationDirection: NavigationDirection = .forward
 
     var body: some View {
         VStack(spacing: 0) {
@@ -28,61 +153,20 @@ struct OnboardingView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .transition(
                 .asymmetric(
-                    insertion: .move(edge: .trailing).combined(with: .opacity),
-                    removal: .move(edge: .leading).combined(with: .opacity)
+                    insertion: .move(edge: navigationDirection == .forward ? .trailing : .leading)
+                        .combined(with: .opacity),
+                    removal: .move(edge: navigationDirection == .forward ? .leading : .trailing)
+                        .combined(with: .opacity)
                 )
             )
 
-            Divider()
-
-            // Bottom bar: page indicator + navigation
-            HStack {
-                // Back button
-                Button("Back") {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        viewModel.goBack()
-                    }
-                }
-                .opacity(viewModel.canGoBack ? 1 : 0)
-                .disabled(!viewModel.canGoBack)
-
-                Spacer()
-
-                // Page indicator dots
-                HStack(spacing: 6) {
-                    ForEach(OnboardingViewModel.Step.allCases, id: \.rawValue) { step in
-                        Circle()
-                            .fill(step == viewModel.currentStep ? Color.accentColor : Color.secondary.opacity(0.3))
-                            .frame(width: 7, height: 7)
-                    }
-                }
-
-                Spacer()
-
-                // Continue / Get Started button
-                if viewModel.isLastStep {
-                    Button("Get Started") {
-                        viewModel.complete()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.regular)
-                } else {
-                    Button("Continue") {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            viewModel.goNext()
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.regular)
-                    .disabled(!viewModel.canProceed)
-                }
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 16)
+            pageControls
         }
-        .frame(width: 500, height: 460)
+        .frame(width: OnboardingMetrics.windowSize, height: OnboardingMetrics.windowSize)
+        .background(OnboardingColors.background)
+        .preferredColorScheme(.dark)
         .onChange(of: viewModel.currentStep) { _, newStep in
-            if newStep == .permission {
+            if newStep == .permission || newStep == .done {
                 viewModel.startPermissionPolling()
             } else {
                 viewModel.stopPermissionPolling()
@@ -96,258 +180,584 @@ struct OnboardingView: View {
         }
     }
 
+    // MARK: - Page Controls
+
+    private var pageControls: some View {
+        HStack(spacing: 32) {
+            // Back button
+            Button {
+                navigationDirection = .backward
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    viewModel.goBack()
+                }
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(viewModel.canGoBack ? .white : OnboardingColors.disabledArrow)
+                    .frame(
+                        width: OnboardingMetrics.navButtonSize,
+                        height: OnboardingMetrics.navButtonSize
+                    )
+            }
+            .buttonStyle(.plain)
+            .focusEffectDisabled()
+            .disabled(!viewModel.canGoBack)
+
+            // Page dots
+            HStack(spacing: 6) {
+                ForEach(OnboardingViewModel.Step.allCases, id: \.rawValue) { step in
+                    Circle()
+                        .fill(
+                            step == viewModel.currentStep
+                                ? OnboardingColors.accentBlue
+                                : OnboardingColors.dotInactive
+                        )
+                        .frame(width: OnboardingMetrics.dotSize, height: OnboardingMetrics.dotSize)
+                }
+            }
+
+            // Forward / Complete button
+            if viewModel.isLastStep {
+                Button {
+                    viewModel.complete()
+                } label: {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(
+                            width: OnboardingMetrics.navButtonSize,
+                            height: OnboardingMetrics.navButtonSize
+                        )
+                        .background(OnboardingColors.accentBlue, in: RoundedRectangle(cornerRadius: 8))
+                        .shadow(
+                            color: OnboardingColors.accentBlue.opacity(0.4),
+                            radius: 12,
+                            y: 6
+                        )
+                }
+                .buttonStyle(.plain)
+                .focusEffectDisabled()
+            } else {
+                Button {
+                    navigationDirection = .forward
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        viewModel.goNext()
+                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(
+                            viewModel.canProceed ? .white : OnboardingColors.disabledArrow
+                        )
+                        .frame(
+                            width: OnboardingMetrics.navButtonSize,
+                            height: OnboardingMetrics.navButtonSize
+                        )
+                }
+                .buttonStyle(.plain)
+                .focusEffectDisabled()
+                .disabled(!viewModel.canProceed)
+            }
+        }
+        .padding(.bottom, 28)
+        .padding(.top, 12)
+    }
+
     // MARK: - Welcome Step
 
     private var welcomeStep: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 0) {
             Spacer()
 
-            Image(systemName: "eye.slash.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(.tint)
+            // App icon
+            if let appIcon = NSApp.applicationIconImage {
+                Image(nsImage: appIcon)
+                    .resizable()
+                    .frame(
+                        width: OnboardingMetrics.appIconSize,
+                        height: OnboardingMetrics.appIconSize
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: OnboardingMetrics.appIconRadius))
+            }
 
             Text("Welcome to NothingHere")
-                .font(.title2.bold())
+                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .padding(.top, 16)
 
-            Text("Your panic button for a clean screen")
-                .font(.body)
-                .foregroundStyle(.secondary)
+            Text("Your panic button for a clean screen.")
+                .font(.system(size: 16, design: .rounded))
+                .foregroundStyle(OnboardingColors.secondaryText)
+                .padding(.top, 6)
 
-            VStack(alignment: .leading, spacing: 12) {
-                featureRow(icon: "macwindow", text: "Hides all windows instantly")
-                featureRow(icon: "speaker.slash", text: "Mutes system sound")
-                featureRow(icon: "doc", text: "Opens a cover document")
+            // Divider
+            Rectangle()
+                .fill(OnboardingColors.dividerColor)
+                .frame(height: 0.5)
+                .padding(.horizontal, 60)
+                .padding(.top, 28)
+
+            // Feature rows
+            VStack(alignment: .leading, spacing: 14) {
+                welcomeFeatureRow(icon: Lucide.appWindowMac, text: "Hides all windows instantly")
+                welcomeFeatureRow(icon: Lucide.bellOff, text: "Mutes system sound")
+                welcomeFeatureRow(icon: Lucide.fileCheckCorner, text: "Opens a cover document")
             }
-            .padding(.top, 8)
+            .padding(.top, 28)
 
             Spacer()
         }
-        .padding(.horizontal, 40)
+        .padding(.horizontal, 48)
+    }
+
+    private func welcomeFeatureRow(icon: NSImage, text: String) -> some View {
+        HStack(spacing: 12) {
+            lucideIcon(icon, size: 16)
+                .foregroundStyle(OnboardingColors.accentBlue)
+            Text(text)
+                .font(.system(size: 12, design: .rounded))
+                .foregroundStyle(.white)
+        }
     }
 
     // MARK: - Permission Step
 
     private var permissionStep: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 0) {
             Spacer()
 
-            Image(systemName: "lock.shield.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(viewModel.isAccessibilityGranted ? .green : .orange)
+            // Animated icon
+            StepIcon(
+                lucideImage: viewModel.isAccessibilityGranted ? Lucide.folderCheck : Lucide.folderLock
+            )
+            .animation(.easeInOut(duration: 0.3), value: viewModel.isAccessibilityGranted)
 
             Text("Accessibility Permission")
-                .font(.title2.bold())
+                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .padding(.top, 16)
 
-            Text("NothingHere needs Accessibility access to hide windows and listen for your hotkey.")
-                .font(.body)
-                .foregroundStyle(.secondary)
+            Text("NothingHere needs Accessibility access to\nhide windows and listen for your hotkey.")
+                .font(.system(size: 14, design: .rounded))
+                .foregroundStyle(OnboardingColors.secondaryText)
                 .multilineTextAlignment(.center)
+                .padding(.top, 6)
 
-            // Status indicator
-            HStack(spacing: 8) {
-                Image(systemName: viewModel.isAccessibilityGranted ? "checkmark.circle.fill" : "xmark.circle.fill")
-                    .foregroundStyle(viewModel.isAccessibilityGranted ? .green : .orange)
-                    .font(.title3)
-                Text(viewModel.isAccessibilityGranted ? "Permission granted" : "Permission required")
-                    .font(.callout)
-                    .foregroundStyle(viewModel.isAccessibilityGranted ? .secondary : .primary)
-            }
-            .padding(.vertical, 4)
+            // Divider
+            Rectangle()
+                .fill(OnboardingColors.dividerColor)
+                .frame(height: 0.5)
+                .padding(.horizontal, 60)
+                .padding(.top, 28)
 
-            if !viewModel.isAccessibilityGranted {
-                Button("Grant Permission") {
-                    viewModel.grantPermission()
+            // Permission pill
+            Group {
+                if viewModel.isAccessibilityGranted {
+                    permissionGrantedPill
+                } else {
+                    permissionDeniedPill
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-
-                Button("Open System Settings") {
-                    viewModel.openPermissionSettings()
-                }
-                .buttonStyle(.link)
-                .font(.caption)
-
-                Text("System Settings \u{2192} Privacy & Security \u{2192} Accessibility")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
             }
+            .padding(.top, 28)
+            .animation(.easeInOut(duration: 0.3), value: viewModel.isAccessibilityGranted)
 
             Spacer()
         }
-        .padding(.horizontal, 40)
+        .padding(.horizontal, 48)
+    }
+
+    private var permissionDeniedPill: some View {
+        VStack(spacing: 0) {
+            HStack {
+                HStack(spacing: 12) {
+                    OnboardingIconCircle(
+                        lucideImage: Lucide.lockKeyhole,
+                        color: OnboardingColors.darkOrangeCircle
+                    )
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Accessibility")
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                        Text("Required to hide windows and register global hotkey")
+                            .font(.system(size: 9, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
+                }
+                Spacer()
+                Button {
+                    viewModel.grantPermission()
+                } label: {
+                    Text("Grant Permission")
+                        .font(.system(size: 10, weight: .heavy, design: .rounded))
+                        .foregroundStyle(OnboardingColors.warningOrange)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(.white, in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(8)
+            .background(OnboardingColors.warningOrange, in: Capsule())
+        }
+    }
+
+    private var permissionGrantedPill: some View {
+        HStack {
+            HStack(spacing: 12) {
+                OnboardingIconCircle(
+                    lucideImage: Lucide.lockKeyholeOpen,
+                    color: OnboardingColors.successGreen
+                )
+                Text("Accessibility")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+            }
+            Spacer()
+            Text("Granted")
+                .font(.system(size: 8, weight: .heavy, design: .rounded))
+                .foregroundStyle(.white.opacity(0.3))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+                .overlay(Capsule().strokeBorder(.white.opacity(0.2), lineWidth: 0.5))
+        }
+        .padding(8)
+        .background(OnboardingColors.successGreen.opacity(0.2), in: Capsule())
+        .overlay(Capsule().strokeBorder(OnboardingColors.successGreen, lineWidth: 1))
     }
 
     // MARK: - Hotkey Step
 
     private var hotkeyStep: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 0) {
             Spacer()
 
-            Image(systemName: "keyboard.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(.tint)
+            StepIcon(lucideImage: Lucide.keyboard)
 
             Text("Your Panic Hotkey")
-                .font(.title2.bold())
+                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .padding(.top, 16)
 
-            Text("Press this shortcut anytime to trigger NothingHere.")
-                .font(.body)
-                .foregroundStyle(.secondary)
+            Text("Press this shortcut anytime to trigger\nNothingHere.")
+                .font(.system(size: 14, design: .rounded))
+                .foregroundStyle(OnboardingColors.secondaryText)
                 .multilineTextAlignment(.center)
+                .padding(.top, 6)
 
-            // Current hotkey display
+            // Divider
+            Rectangle()
+                .fill(OnboardingColors.dividerColor)
+                .frame(height: 0.5)
+                .padding(.horizontal, 60)
+                .padding(.top, 28)
+
+            // Key badges
             if let keyName = viewModel.hotkeyRecorder.currentKeyName {
-                HStack(spacing: 4) {
+                HStack(spacing: 8) {
                     ForEach(viewModel.hotkeyRecorder.currentModifierSymbols, id: \.self) { symbol in
-                        KeyBadge(text: symbol)
+                        OnboardingKeyBadge(content: modifierBadgeContent(for: symbol))
                     }
-                    KeyBadge(text: keyName)
+                    OnboardingKeyBadge(content: .text(keyName))
+
+                    // Reset button
+                    Button {
+                        viewModel.hotkeyRecorder.startRecordingHotkey()
+                    } label: {
+                        lucideIcon(Lucide.iterationCw, size: OnboardingMetrics.keyBadgeSize * 0.35)
+                            .foregroundStyle(.white)
+                            .frame(
+                                width: OnboardingMetrics.keyBadgeSize,
+                                height: OnboardingMetrics.keyBadgeSize
+                            )
+                            .background(
+                                OnboardingColors.accentBlue,
+                                in: RoundedRectangle(cornerRadius: 6)
+                            )
+                            .shadow(
+                                color: OnboardingColors.accentBlue.opacity(0.3),
+                                radius: 12,
+                                y: 6
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .help("Change shortcut")
                 }
+                .padding(.top, 28)
                 .popover(isPresented: Bindable(viewModel.hotkeyRecorder).showRecordingPopover) {
                     onboardingRecordingPopover
                 }
             }
 
-            Button("Change") {
-                viewModel.hotkeyRecorder.startRecordingHotkey()
-            }
-            .controlSize(.small)
-
             Text("Default: \u{2303}\u{2318}Z")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+                .font(.system(size: 12, design: .rounded))
+                .foregroundStyle(OnboardingColors.secondaryText)
+                .padding(.top, 12)
 
             Spacer()
         }
-        .padding(.horizontal, 40)
+        .padding(.horizontal, 48)
     }
 
     // MARK: - Document Step
 
     private var documentStep: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 0) {
             Spacer()
 
-            Image(systemName: "doc.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(.tint)
+            StepIcon(
+                lucideImage: viewModel.documentManager.documentURL != nil
+                    ? Lucide.fileCheckCorner : Lucide.filePlusCorner
+            )
 
             Text("Cover Document")
-                .font(.title2.bold())
+                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .padding(.top, 16)
 
-            Text("Optionally choose a file to open when panic triggers.")
-                .font(.body)
-                .foregroundStyle(.secondary)
+            Text("Optionally choose a file to open when\npanic triggers.")
+                .font(.system(size: 14, design: .rounded))
+                .foregroundStyle(OnboardingColors.secondaryText)
                 .multilineTextAlignment(.center)
+                .padding(.top, 6)
+
+            // Divider
+            Rectangle()
+                .fill(OnboardingColors.dividerColor)
+                .frame(height: 0.5)
+                .padding(.horizontal, 60)
+                .padding(.top, 28)
 
             if let url = viewModel.documentManager.documentURL {
+                // File selected state
                 HStack(spacing: 8) {
-                    Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
-                        .resizable()
-                        .frame(width: 20, height: 20)
-                    Text(url.lastPathComponent)
-                        .font(.callout)
-                        .lineLimit(1)
-                }
-                .padding(10)
-                .background(.quaternary.opacity(0.5), in: .rect(cornerRadius: 8))
+                    // Info bar
+                    HStack(spacing: 12) {
+                        lucideIcon(Lucide.image, size: 24)
+                            .foregroundStyle(OnboardingColors.accentBlue)
+                            .fixedSize()
 
-                HStack(spacing: 12) {
-                    Button("Change\u{2026}") {
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(url.lastPathComponent)
+                                .font(.system(size: 12, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                            Text(url.deletingLastPathComponent().path)
+                                .font(.system(size: 9, design: .rounded))
+                                .foregroundStyle(.white.opacity(0.6))
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        }
+                    }
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 12)
+                    .background(OnboardingColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 6))
+                    .layoutPriority(-1)
+
+                    // Action buttons
+                    Button {
                         viewModel.documentManager.pickDocument()
+                    } label: {
+                        Text("Change")
+                            .font(.system(size: 10, weight: .heavy, design: .rounded))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(
+                                OnboardingColors.accentBlue,
+                                in: RoundedRectangle(cornerRadius: 6)
+                            )
                     }
-                    .controlSize(.small)
+                    .buttonStyle(.plain)
 
-                    Button("Remove") {
+                    Button {
                         viewModel.documentManager.removeDocument()
+                    } label: {
+                        lucideIcon(Lucide.fileX, size: 12)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
+                            .background(
+                                OnboardingColors.warningOrange,
+                                in: RoundedRectangle(cornerRadius: 6)
+                            )
                     }
-                    .controlSize(.small)
-                    .foregroundStyle(.red)
+                    .buttonStyle(.plain)
+                    .help("Remove document")
                 }
+                .padding(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(OnboardingColors.cardBorder.opacity(0.5), lineWidth: 0.5)
+                )
+                .padding(.top, 28)
             } else {
-                Button("Choose File\u{2026}") {
+                // No file state
+                Button {
                     viewModel.documentManager.pickDocument()
+                } label: {
+                    Text("Choose File")
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 10)
+                        .background(
+                            OnboardingColors.accentBlue,
+                            in: RoundedRectangle(cornerRadius: 6)
+                        )
+                        .shadow(
+                            color: OnboardingColors.accentBlue.opacity(0.3),
+                            radius: 12,
+                            y: 6
+                        )
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
+                .buttonStyle(.plain)
+                .padding(.top, 28)
             }
 
             Text("You can skip this step")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+                .font(.system(size: 12, design: .rounded))
+                .foregroundStyle(OnboardingColors.secondaryText)
+                .padding(.top, 8)
 
             Spacer()
         }
-        .padding(.horizontal, 40)
+        .padding(.horizontal, 48)
     }
 
     // MARK: - Done Step
 
     private var doneStep: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 0) {
             Spacer()
 
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(.green)
+            StepIcon(lucideImage: Lucide.laptopMinimalCheck)
 
             Text("You're All Set")
-                .font(.title2.bold())
+                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .padding(.top, 16)
 
-            Text("NothingHere is ready. It lives in your menu bar.")
-                .font(.body)
-                .foregroundStyle(.secondary)
+            Text("NothingHere is ready.\nIt lives in your menu bar.")
+                .font(.system(size: 14, design: .rounded))
+                .foregroundStyle(OnboardingColors.secondaryText)
                 .multilineTextAlignment(.center)
+                .padding(.top, 6)
 
-            // Summary
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 8) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                    Text("Accessibility permission")
-                        .font(.callout)
+            // Summary items
+            VStack(spacing: 20) {
+                // Permission row (conditional)
+                if viewModel.isAccessibilityGranted {
+                    HStack {
+                        HStack(spacing: 12) {
+                            OnboardingIconCircle(
+                                lucideImage: Lucide.lockKeyholeOpen,
+                                color: OnboardingColors.successGreen
+                            )
+                            Text("Accessibility permission")
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                        }
+                        Spacer()
+                        Text("Granted")
+                            .font(.system(size: 8, weight: .heavy, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.3))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 6)
+                            .overlay(Capsule().strokeBorder(.white.opacity(0.2), lineWidth: 0.5))
+                    }
+                    .padding(8)
+                    .background(OnboardingColors.successGreen.opacity(0.2), in: Capsule())
+                    .overlay(Capsule().strokeBorder(OnboardingColors.successGreen, lineWidth: 1))
+                } else {
+                    HStack {
+                        HStack(spacing: 12) {
+                            OnboardingIconCircle(
+                                lucideImage: Lucide.lockKeyhole,
+                                color: OnboardingColors.darkOrangeCircle
+                            )
+                            Text("Accessibility permission")
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
+                        }
+                        Spacer()
+                        Button {
+                            viewModel.grantPermission()
+                        } label: {
+                            Text("Grant Permission")
+                                .font(.system(size: 10, weight: .heavy, design: .rounded))
+                                .foregroundStyle(OnboardingColors.warningOrange)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(.white, in: Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(8)
+                    .background(OnboardingColors.warningOrange, in: Capsule())
                 }
 
-                HStack(spacing: 8) {
-                    Image(systemName: "keyboard")
-                        .foregroundStyle(.tint)
-                    if let keyName = viewModel.hotkeyRecorder.currentKeyName {
-                        HStack(spacing: 3) {
-                            Text("Hotkey:")
-                                .font(.callout)
-                            ForEach(viewModel.hotkeyRecorder.currentModifierSymbols, id: \.self) { symbol in
-                                KeyBadge(text: symbol)
+                // Hotkey card
+                if let keyName = viewModel.hotkeyRecorder.currentKeyName {
+                    VStack(spacing: 10) {
+                        // Title row
+                        HStack(spacing: 6) {
+                            lucideIcon(Lucide.keyboard, size: 13)
+                                .foregroundStyle(OnboardingColors.accentBlue)
+                            Text("Hotkey")
+                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .foregroundStyle(.white)
+                        }
+
+                        // Key badges
+                        HStack(spacing: 12) {
+                            ForEach(
+                                viewModel.hotkeyRecorder.currentModifierSymbols, id: \.self
+                            ) { symbol in
+                                OnboardingKeyBadge(
+                                    content: modifierBadgeContent(for: symbol),
+                                    size: OnboardingMetrics.keyBadgeSizeSmall
+                                )
                             }
-                            KeyBadge(text: keyName)
+                            OnboardingKeyBadge(
+                                content: .text(keyName),
+                                size: OnboardingMetrics.keyBadgeSizeSmall
+                            )
                         }
                     }
                 }
-
-                if let url = viewModel.documentManager.documentURL {
-                    HStack(spacing: 8) {
-                        Image(systemName: "doc.fill")
-                            .foregroundStyle(.tint)
-                        Text(url.lastPathComponent)
-                            .font(.callout)
-                            .lineLimit(1)
-                    }
-                }
             }
-            .padding(16)
-            .background(.quaternary.opacity(0.5), in: .rect(cornerRadius: 10))
+            .padding(.top, 20)
 
-            Button("Open Settings\u{2026}") {
-                (NSApp.delegate as? AppDelegate)?.openSettingsWindow()
+            // Open Settings button
+            Button {
+                viewModel.requestsSettingsOpen = true
+                viewModel.complete()
+            } label: {
+                Text("Open Settings")
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 10)
+                    .background(
+                        OnboardingColors.accentBlue,
+                        in: RoundedRectangle(cornerRadius: 6)
+                    )
+                    .shadow(
+                        color: OnboardingColors.accentBlue.opacity(0.3),
+                        radius: 12,
+                        y: 6
+                    )
             }
-            .buttonStyle(.link)
-            .font(.caption)
+            .buttonStyle(.plain)
+            .padding(.top, 20)
 
             Spacer()
         }
-        .padding(.horizontal, 40)
+        .padding(.horizontal, 48)
     }
 
-    // MARK: - Recording Popover (Onboarding)
+    // MARK: - Recording Popover
 
     private var onboardingRecordingPopover: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -409,19 +819,6 @@ struct OnboardingView: View {
         }
         .padding(12)
         .frame(width: 240)
-    }
-
-    // MARK: - Helpers
-
-    private func featureRow(icon: String, text: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundStyle(.tint)
-                .frame(width: 24)
-            Text(text)
-                .font(.callout)
-        }
     }
 }
 
