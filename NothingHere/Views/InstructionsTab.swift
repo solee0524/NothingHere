@@ -174,7 +174,7 @@ struct InstructionsTab: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 20)
-                .strokeBorder(Color(hex: 0x666666), lineWidth: 1)
+                .strokeBorder(Color(hex: 0x444444), lineWidth: 1)
         )
     }
 

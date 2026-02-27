@@ -48,7 +48,7 @@ struct AboutTab: View {
 
     private let accentBlue = Color(hex: 0x4584EE)
     private let subtextGray = Color(hex: 0xAAAAAA)
-    private let dividerGray = Color(hex: 0x666666)
+    private let dividerGray = Color(hex: 0x444444)
 
     private var appVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"

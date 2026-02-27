@@ -15,7 +15,7 @@ private enum DesignColors {
     static let sidebarTop = Color(hex: 0x111111)
     static let sidebarBottom = Color(hex: 0x222222)
     static let cardFill = Color(hex: 0x0D0D0D)
-    static let cardBorder = Color(hex: 0x666666)
+    static let cardBorder = Color(hex: 0x444444)
     static let accentBlue = Color(hex: 0x4584EE)
     static let warningOrange = Color(hex: 0xD54713)
     static let successGreen = Color(hex: 0x17D952)
@@ -122,7 +122,7 @@ private struct SidebarTabButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 8) {
-                lucideIcon(lucideImage, size: 16)
+                lucideIcon(lucideImage, size: 18)
                     .foregroundStyle(isSelected ? DesignColors.accentBlue : DesignColors.secondaryText)
                 Text(title)
                     .font(.system(size: 14, weight: .bold))
@@ -641,7 +641,7 @@ private struct GeneralTab: View {
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
-                                .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 8))
+                                .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 6))
                                 .shadow(
                                     color: DesignColors.accentBlue.opacity(0.3),
                                     radius: 12,
@@ -657,7 +657,7 @@ private struct GeneralTab: View {
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
-                                .background(DesignColors.warningOrange, in: RoundedRectangle(cornerRadius: 12))
+                                .background(DesignColors.warningOrange, in: RoundedRectangle(cornerRadius: 6))
                                 .shadow(
                                     color: DesignColors.warningOrange.opacity(0.3),
                                     radius: 12,
@@ -690,7 +690,7 @@ private struct GeneralTab: View {
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
-                                .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 8))
+                                .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 6))
                                 .shadow(
                                     color: DesignColors.accentBlue.opacity(0.3),
                                     radius: 12,
@@ -777,7 +777,7 @@ struct SettingsCard<Content: View>: View {
                     Image(nsImage: lucideIcon)
                         .renderingMode(.template)
                         .resizable()
-                        .frame(width: 14, height: 14)
+                        .frame(width: 16, height: 16)
                         .foregroundStyle(DesignColors.accentBlue)
                 }
                 Text(header)
