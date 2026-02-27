@@ -10,6 +10,14 @@
       After running scripts/release.sh, update the edSignature and length fields.
     -->
         <item>
+            <title>1.1.0</title>
+            <pubDate>Fri, 28 Feb 2026 00:28:00 +0800</pubDate>
+            <sparkle:version>11</sparkle:version>
+            <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/solee0524/NothingHere/releases/download/v1.1.0/NothingHere-v1.1.0.dmg" length="4959844" type="application/octet-stream" sparkle:edSignature="6NFe5ABLhftvpgWph3SdkuO2TPHwZOB/KErXZG4QP9bnerNlFOVUGUsNmV4e8vW25gNlaT8ZVaqMUeUeUmbwDA=="/>
+        </item>
+        <item>
             <title>1.0.9</title>
             <pubDate>Thu, 26 Feb 2026 15:33:28 +0800</pubDate>
             <sparkle:version>10</sparkle:version>
