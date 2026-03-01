@@ -28,7 +28,8 @@ struct NothingHereApp: App {
     }
 
     private var menuBarIcon: NSImage {
-        let icon = guardMode.isArmed ? Lucide.shieldAlert : Lucide.eyeOff
+        let name = guardMode.isArmed ? "TopLogoOn" : "TopLogoOff"
+        let icon = NSImage(named: name) ?? NSImage()
         icon.isTemplate = true
         icon.size = NSSize(width: 18, height: 18)
         return icon
