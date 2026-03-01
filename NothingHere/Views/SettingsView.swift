@@ -250,7 +250,9 @@ struct SettingsView: View {
     @ViewBuilder
     private var tabContent: some View {
         VStack(spacing: 0) {
-            contentHeader
+            if selectedTab != .about {
+                contentHeader
+            }
             switch selectedTab {
             case .general:
                 GeneralTab(viewModel: viewModel)
@@ -268,10 +270,11 @@ struct SettingsView: View {
                 .font(AppTypography.headingMedium)
                 .foregroundStyle(.white)
             Spacer()
-            lucideIcon(Lucide.mousePointerClick, size: 14)
-                .foregroundStyle(.white)
-                .padding(6)
-                .background(DesignColors.accentBlue, in: Circle())
+            Image("AppLogo")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 28, height: 28)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
         }
         .padding(.horizontal, 20)
         .padding(.top, 28)

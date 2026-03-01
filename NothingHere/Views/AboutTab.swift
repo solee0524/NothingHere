@@ -107,15 +107,17 @@ struct AboutTab: View {
 
     private var appInfoSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Image(nsImage: NSApp.applicationIconImage)
+            Image("AppLogo")
                 .resizable()
-                .frame(width: 48, height: 48)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 64, height: 64)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .padding(.top, 20)
 
             Spacer().frame(height: 16)
 
             Text("NothingHere")
-                .font(AppTypography.headingLarge)
+                .font(AppTypography.font(size: 28, weight: .semibold))
                 .foregroundStyle(.white)
 
             Spacer().frame(height: 4)

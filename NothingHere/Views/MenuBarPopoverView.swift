@@ -228,15 +228,14 @@ struct MenuBarPopoverView: View {
 
     private var logoHeader: some View {
         HStack(spacing: 8) {
-            if let appIcon = NSApp.applicationIconImage {
-                Image(nsImage: appIcon)
-                    .resizable()
-                    .frame(
-                        width: PopoverMetrics.appIconSize,
-                        height: PopoverMetrics.appIconSize
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-            }
+            Image("AppLogo")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(
+                    width: PopoverMetrics.appIconSize,
+                    height: PopoverMetrics.appIconSize
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 6))
             Text("We are here !")
                 .font(AppTypography.font(
                     size: PopoverMetrics.headerFontSize

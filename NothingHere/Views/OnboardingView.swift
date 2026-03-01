@@ -269,16 +269,15 @@ struct OnboardingView: View {
         VStack(spacing: 0) {
             Spacer()
 
-            // App icon
-            if let appIcon = NSApp.applicationIconImage {
-                Image(nsImage: appIcon)
-                    .resizable()
-                    .frame(
-                        width: OnboardingMetrics.appIconSize,
-                        height: OnboardingMetrics.appIconSize
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: OnboardingMetrics.appIconRadius))
-            }
+            // App logo
+            Image("AppLogo")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(
+                    width: OnboardingMetrics.appIconSize,
+                    height: OnboardingMetrics.appIconSize
+                )
+                .clipShape(RoundedRectangle(cornerRadius: OnboardingMetrics.appIconRadius))
 
             Text("Welcome to NothingHere")
                 .font(AppTypography.displayMedium)
