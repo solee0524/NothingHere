@@ -10,7 +10,7 @@ import SwiftUI
 // MARK: - Design Tokens
 
 private enum PopoverColors {
-    static let background = Color(hex: 0x111111, opacity: 0.9)
+    static let background = Color(hex: 0x111111, opacity: 0.4)
     static let accentBlue = Color(hex: 0x4584EE)
     static let divider = Color(hex: 0x666666)
     static let keyBadgeFill = Color(hex: 0x333333)

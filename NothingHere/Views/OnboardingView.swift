@@ -16,7 +16,7 @@ private enum OnboardingColors {
     static let successGreen = Color(hex: 0x17D952)
     static let secondaryText = Color(hex: 0x666666)
     static let dotInactive = Color(hex: 0x444444)
-    static let keyBadgeFill = Color(hex: 0x222222)
+    static let keyBadgeFill = Color(hex: 0x333333)
     static let dividerColor = Color(hex: 0x666666)
     static let disabledArrow = Color(hex: 0x333333)
     static let cardBorder = Color(hex: 0x444444)
@@ -579,9 +579,10 @@ struct OnboardingView: View {
                     .help("Remove document")
                 }
                 .padding(8)
+                .background(OnboardingColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 12))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(OnboardingColors.cardBorder.opacity(0.5), lineWidth: 0.5)
+                        .strokeBorder(OnboardingColors.cardBorder.opacity(0.3), lineWidth: 0.5)
                 )
                 .padding(.top, 28)
             } else {
