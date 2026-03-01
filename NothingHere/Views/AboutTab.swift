@@ -62,22 +62,22 @@ struct AboutTab: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 appInfoSection
-                    .padding(.bottom, 32)
+                    .padding(.bottom, 24)
                 sectionDivider
-                    .padding(.bottom, 28)
+                    .padding(.bottom, 20)
                 updateSection
-                    .padding(.bottom, 28)
+                    .padding(.bottom, 20)
                 sectionDivider
-                    .padding(.bottom, 28)
+                    .padding(.bottom, 20)
                 contactSection
-                    .padding(.bottom, 28)
+                    .padding(.bottom, 20)
                 sectionDivider
-                    .padding(.bottom, 28)
+                    .padding(.bottom, 20)
                 supportSection
             }
-            .padding(.top, 60)
-            .padding(.horizontal, 40)
-            .padding(.bottom, 60)
+            .padding(.top, 40)
+            .padding(.horizontal, 32)
+            .padding(.bottom, 40)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
@@ -94,11 +94,11 @@ struct AboutTab: View {
     // MARK: - Section Title
 
     private func sectionTitle(icon: NSImage, title: String) -> some View {
-        HStack(spacing: 12) {
-            lucideIcon(icon, size: 22)
+        HStack(spacing: 8) {
+            lucideIcon(icon, size: 16)
                 .foregroundStyle(accentBlue)
             Text(title)
-                .font(.system(size: 20, weight: .semibold))
+                .font(AppTypography.headingSmall)
                 .foregroundStyle(.white)
         }
     }
@@ -109,19 +109,19 @@ struct AboutTab: View {
         VStack(alignment: .leading, spacing: 0) {
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable()
-                .frame(width: 60, height: 60)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .frame(width: 48, height: 48)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
 
             Spacer().frame(height: 16)
 
             Text("NothingHere")
-                .font(.system(size: 32, weight: .semibold))
+                .font(AppTypography.headingLarge)
                 .foregroundStyle(.white)
 
             Spacer().frame(height: 4)
 
             Text("Version \(appVersion) (Build \(buildNumber))")
-                .font(.system(size: 16))
+                .font(AppTypography.bodySmall)
                 .foregroundStyle(dividerGray)
         }
     }
@@ -132,14 +132,14 @@ struct AboutTab: View {
         VStack(alignment: .leading, spacing: 4) {
             sectionTitle(icon: Lucide.hardDriveUpload, title: "Software Update")
 
-            HStack {
+            HStack(spacing: 8) {
                 Text("Automatically check for updates")
-                    .font(.system(size: 16))
+                    .font(AppTypography.bodySmall)
                     .foregroundStyle(subtextGray)
-                Spacer()
                 Toggle("", isOn: $autoCheckForUpdates)
                     .toggleStyle(.switch)
                     .controlSize(.small)
+                    .labelsHidden()
                     .tint(accentBlue)
                     .onChange(of: autoCheckForUpdates) { _, newValue in
                         updater.automaticallyChecksForUpdates = newValue
@@ -156,7 +156,7 @@ struct AboutTab: View {
 
             HStack(spacing: 12) {
                 Text(email)
-                    .font(.system(size: 16))
+                    .font(AppTypography.bodySmall)
                     .foregroundStyle(subtextGray)
                     .textSelection(.enabled)
 
@@ -186,16 +186,19 @@ struct AboutTab: View {
             Button {
                 NSWorkspace.shared.open(kofiURL)
             } label: {
-                HStack(spacing: 12) {
-                    lucideIcon(Lucide.coffee, size: 20)
+                HStack(spacing: 8) {
+                    Image("KofiLogo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 16)
                     Text("Buy me a coffee")
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(AppTypography.headingSmall)
                 }
                 .foregroundStyle(.white)
-                .padding(.vertical, 12)
-                .padding(.horizontal, 16)
-                .background(accentBlue, in: RoundedRectangle(cornerRadius: 16))
-                .shadow(color: Color(hex: 0x4584EE, opacity: 0.3), radius: 8, y: 6)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 14)
+                .background(accentBlue, in: RoundedRectangle(cornerRadius: 12))
+                .shadow(color: Color(hex: 0x4584EE, opacity: 0.3), radius: 6, y: 4)
             }
             .buttonStyle(.plain)
         }

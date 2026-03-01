@@ -101,7 +101,7 @@ private struct BreadcrumbStep: View {
 
     var body: some View {
         Text(text)
-            .font(.system(size: 9))
+            .font(AppTypography.captionMedium)
             .foregroundStyle(.white)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
@@ -125,7 +125,7 @@ private struct SidebarTabButton: View {
                 lucideIcon(lucideImage, size: 18)
                     .foregroundStyle(isSelected ? DesignColors.accentBlue : DesignColors.secondaryText)
                 Text(title)
-                    .font(.system(size: 14, weight: .bold))
+                    .font(AppTypography.headingSmall)
                     .foregroundStyle(.white)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -265,7 +265,7 @@ struct SettingsView: View {
     private var contentHeader: some View {
         HStack {
             Text("NothingHere")
-                .font(.system(size: 16, weight: .bold))
+                .font(AppTypography.headingMedium)
                 .foregroundStyle(.white)
             Spacer()
             lucideIcon(Lucide.mousePointerClick, size: 14)
@@ -314,15 +314,16 @@ private struct GeneralTab: View {
     private var permissionGrantedContent: some View {
         StatusPill(color: DesignColors.successGreen) {
             HStack(spacing: 12) {
-                IconCircle(lucideImage: Lucide.lockKeyhole, color: DesignColors.successGreen)
+                IconCircle(lucideImage: Lucide.lockKeyholeOpen, color: DesignColors.successGreen)
                 Text("Accessibility")
-                    .font(.system(size: 13, weight: .bold))
+                    .font(AppTypography.labelLarge)
                     .foregroundStyle(.white)
             }
         } trailing: {
             Text("Granted")
-                .font(.system(size: 11, weight: .semibold))
+                .font(AppTypography.labelSmall)
                 .foregroundStyle(DesignColors.successGreen)
+                .padding(.trailing, 4)
         }
     }
 
@@ -333,10 +334,10 @@ private struct GeneralTab: View {
                     IconCircle(lucideImage: Lucide.lockKeyhole, color: DesignColors.darkOrangeCircle)
                     VStack(alignment: .leading, spacing: 1) {
                         Text("Accessibility")
-                            .font(.system(size: 13, weight: .bold))
+                            .font(AppTypography.labelLarge)
                             .foregroundStyle(.white)
                         Text("Required to hide windows and register global hotkey")
-                            .font(.system(size: 9))
+                            .font(AppTypography.captionMedium)
                             .foregroundStyle(.white.opacity(0.7))
                     }
                 }
@@ -345,7 +346,7 @@ private struct GeneralTab: View {
                     viewModel.grantPermission()
                 } label: {
                     Text("Grant Permission")
-                        .font(.system(size: 10, weight: .heavy))
+                        .font(AppTypography.buttonSmall)
                         .foregroundStyle(DesignColors.warningOrange)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
@@ -355,7 +356,7 @@ private struct GeneralTab: View {
             }
 
             Text("If the dialog doesn't appear, please follow the troubleshooting steps below")
-                .font(.system(size: 9))
+                .font(AppTypography.captionMedium)
                 .foregroundStyle(DesignColors.secondaryText)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
@@ -363,15 +364,15 @@ private struct GeneralTab: View {
             HStack(spacing: 6) {
                 BreadcrumbStep(text: "System Settings")
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 7, weight: .bold))
+                    .font(AppTypography.captionTiny)
                     .foregroundStyle(.white.opacity(0.5))
                 BreadcrumbStep(text: "Privacy & Security")
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 7, weight: .bold))
+                    .font(AppTypography.captionTiny)
                     .foregroundStyle(.white.opacity(0.5))
                 BreadcrumbStep(text: "Accessibility")
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 7, weight: .bold))
+                    .font(AppTypography.captionTiny)
                     .foregroundStyle(.white.opacity(0.5))
                 BreadcrumbStep(text: "NothingHere")
             }
@@ -380,7 +381,7 @@ private struct GeneralTab: View {
                 viewModel.openPermissionSettings()
             } label: {
                 Text("Open System Settings")
-                    .font(.system(size: 10, weight: .medium))
+                    .font(AppTypography.font(size: 10, weight: .medium))
                     .foregroundStyle(DesignColors.accentBlue)
             }
             .buttonStyle(.plain)
@@ -401,7 +402,7 @@ private struct GeneralTab: View {
 
                 if let conflict = viewModel.hotkeyRecorder.hotkeyConflictMessage {
                     Label(conflict, systemImage: "exclamationmark.triangle.fill")
-                        .font(.caption)
+                        .font(AppTypography.captionLarge)
                         .foregroundStyle(.orange)
                 }
             }
@@ -443,7 +444,7 @@ private struct GeneralTab: View {
                 }
             } else {
                 Text("Record Shortcut")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(AppTypography.buttonMedium)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
@@ -487,7 +488,7 @@ private struct GeneralTab: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.secondary)
-                        .font(.title3)
+                        .font(AppTypography.headingMedium)
                 }
                 .buttonStyle(.plain)
                 .focusEffectDisabled()
@@ -497,11 +498,11 @@ private struct GeneralTab: View {
                 EmptyView()
             } else if let conflict = viewModel.hotkeyRecorder.pendingConflict {
                 Text(conflict)
-                    .font(.caption)
+                    .font(AppTypography.captionLarge)
                     .foregroundStyle(.orange)
             } else {
                 Text("Recording...")
-                    .font(.callout)
+                    .font(AppTypography.bodyMedium)
                     .foregroundStyle(.secondary)
             }
 
@@ -532,7 +533,7 @@ private struct GeneralTab: View {
                 Text(
                     "When armed, the very next key press will trigger the panic sequence and automatically disarm. Any key works \u{2014} no modifier needed. You can also arm from the menu bar."
                 )
-                .font(.system(size: 10))
+                .font(AppTypography.captionLarge)
                 .foregroundStyle(DesignColors.secondaryText)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
@@ -542,7 +543,7 @@ private struct GeneralTab: View {
                         HStack(spacing: 12) {
                             IconCircle(lucideImage: Lucide.shieldCheck, color: DesignColors.successGreen)
                             Text("Armed")
-                                .font(.system(size: 13, weight: .bold))
+                                .font(AppTypography.labelLarge)
                                 .foregroundStyle(.white)
                         }
                     } trailing: {
@@ -550,7 +551,7 @@ private struct GeneralTab: View {
                             guardMode.toggle()
                         } label: {
                             Text("Disarm")
-                                .font(.system(size: 10, weight: .heavy))
+                                .font(AppTypography.buttonSmall)
                                 .foregroundStyle(DesignColors.cardFill)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
@@ -566,7 +567,7 @@ private struct GeneralTab: View {
                                 color: DesignColors.secondaryText.opacity(0.5)
                             )
                             Text("Disarmed")
-                                .font(.system(size: 13, weight: .bold))
+                                .font(AppTypography.labelLarge)
                                 .foregroundStyle(.white.opacity(0.6))
                         }
                     } trailing: {
@@ -574,7 +575,7 @@ private struct GeneralTab: View {
                             guardMode.toggle()
                         } label: {
                             Text("Arm")
-                                .font(.system(size: 10, weight: .heavy))
+                                .font(AppTypography.buttonSmall)
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
@@ -602,7 +603,7 @@ private struct GeneralTab: View {
                     HStack(spacing: 12) {
                         IconCircle(lucideImage: Lucide.fileCheck, color: pillColor)
                         Text("Open a file when panic is triggered")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(AppTypography.font(size: 11, weight: .bold))
                             .foregroundStyle(.white)
                     }
                 } trailing: {
@@ -623,10 +624,10 @@ private struct GeneralTab: View {
                             .frame(width: 28, height: 28)
                         VStack(alignment: .leading, spacing: 1) {
                             Text(url.lastPathComponent)
-                                .font(.system(size: 12, weight: .bold))
+                                .font(AppTypography.labelMedium)
                                 .foregroundStyle(.white)
                             Text(url.deletingLastPathComponent().path)
-                                .font(.system(size: 9))
+                                .font(AppTypography.captionMedium)
                                 .foregroundStyle(.white.opacity(0.6))
                                 .lineLimit(1)
                                 .truncationMode(.middle)
@@ -637,7 +638,7 @@ private struct GeneralTab: View {
                             viewModel.documentManager.pickDocument()
                         } label: {
                             Text("Change")
-                                .font(.system(size: 10, weight: .heavy))
+                                .font(AppTypography.buttonSmall)
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
@@ -679,14 +680,14 @@ private struct GeneralTab: View {
                         lucideIcon(Lucide.folderPlus, size: 28)
                             .foregroundStyle(DesignColors.accentBlue)
                         Text("Add File")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(AppTypography.labelMedium)
                             .foregroundStyle(.white)
                         Spacer()
                         Button {
                             viewModel.documentManager.pickDocument()
                         } label: {
                             Text("Choose File")
-                                .font(.system(size: 10, weight: .heavy))
+                                .font(AppTypography.buttonSmall)
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
@@ -712,7 +713,7 @@ private struct GeneralTab: View {
                         "Selected file is no longer available. Please choose a new file.",
                         systemImage: "exclamationmark.triangle.fill"
                     )
-                    .font(.caption)
+                    .font(AppTypography.captionLarge)
                     .foregroundStyle(.orange)
                 }
             }
@@ -739,13 +740,13 @@ struct KeyBadge: View {
         switch style {
         case .compact:
             Text(text)
-                .font(.system(size: 16, weight: .medium, design: .rounded))
+                .font(AppTypography.keycap(size: 16, weight: .medium))
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
                 .background(.quaternary, in: .rect(cornerRadius: 6))
         case .large:
             Text(text)
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .font(AppTypography.keycap(size: 18))
                 .foregroundStyle(.white)
                 .frame(width: DesignMetrics.keyBadgeSize, height: DesignMetrics.keyBadgeSize)
                 .background(DesignColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 6))
@@ -781,7 +782,7 @@ struct SettingsCard<Content: View>: View {
                         .foregroundStyle(DesignColors.accentBlue)
                 }
                 Text(header)
-                    .font(.system(size: 14, weight: .bold))
+                    .font(AppTypography.headingSmall)
                     .foregroundStyle(.white)
             }
 

@@ -152,7 +152,7 @@ struct InstructionsTab: View {
                 lucideIcon(section.titleIcon, size: 16)
                     .foregroundStyle(section.themeColor)
                 Text(section.title)
-                    .font(.system(size: 14, weight: .bold))
+                    .font(AppTypography.headingSmall)
                     .foregroundStyle(.white)
             }
 
@@ -194,13 +194,13 @@ struct InstructionsTab: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Step.\(step.number)")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(AppTypography.headingMedium)
                     .foregroundStyle(.white)
                 Text(step.description)
-                    .font(.system(size: 10))
+                    .font(AppTypography.captionLarge)
                     .foregroundStyle(.white)
                     .lineLimit(3)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxHeight: 48, alignment: .top)
             }
         }
         .padding(12)

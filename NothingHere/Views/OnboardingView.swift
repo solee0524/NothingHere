@@ -103,7 +103,7 @@ private struct OnboardingKeyBadge: View {
                     .foregroundStyle(.white)
             case .text(let text):
                 Text(text)
-                    .font(.system(size: size * 0.4, weight: .semibold, design: .rounded))
+                    .font(AppTypography.keycap(size: size * 0.4))
                     .foregroundStyle(.white)
             }
         }
@@ -192,7 +192,7 @@ struct OnboardingView: View {
                 }
             } label: {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 14, weight: .bold))
+                    .font(AppTypography.headingSmall)
                     .foregroundStyle(viewModel.canGoBack ? .white : OnboardingColors.disabledArrow)
                     .frame(
                         width: OnboardingMetrics.navButtonSize,
@@ -222,7 +222,7 @@ struct OnboardingView: View {
                     viewModel.complete()
                 } label: {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(AppTypography.headingSmall)
                         .foregroundStyle(.white)
                         .frame(
                             width: OnboardingMetrics.navButtonSize,
@@ -245,7 +245,7 @@ struct OnboardingView: View {
                     }
                 } label: {
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(AppTypography.headingSmall)
                         .foregroundStyle(
                             viewModel.canProceed ? .white : OnboardingColors.disabledArrow
                         )
@@ -281,12 +281,12 @@ struct OnboardingView: View {
             }
 
             Text("Welcome to NothingHere")
-                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .font(AppTypography.displayMedium)
                 .foregroundStyle(.white)
                 .padding(.top, 16)
 
             Text("Your panic button for a clean screen.")
-                .font(.system(size: 16, design: .rounded))
+                .font(AppTypography.bodyLarge)
                 .foregroundStyle(OnboardingColors.secondaryText)
                 .padding(.top, 6)
 
@@ -315,7 +315,7 @@ struct OnboardingView: View {
             lucideIcon(icon, size: 16)
                 .foregroundStyle(OnboardingColors.accentBlue)
             Text(text)
-                .font(.system(size: 12, design: .rounded))
+                .font(AppTypography.bodySmall)
                 .foregroundStyle(.white)
         }
     }
@@ -333,12 +333,12 @@ struct OnboardingView: View {
             .animation(.easeInOut(duration: 0.3), value: viewModel.isAccessibilityGranted)
 
             Text("Accessibility Permission")
-                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .font(AppTypography.displayMedium)
                 .foregroundStyle(.white)
                 .padding(.top, 16)
 
             Text("NothingHere needs Accessibility access to\nhide windows and listen for your hotkey.")
-                .font(.system(size: 14, design: .rounded))
+                .font(AppTypography.bodyMedium)
                 .foregroundStyle(OnboardingColors.secondaryText)
                 .multilineTextAlignment(.center)
                 .padding(.top, 6)
@@ -376,10 +376,10 @@ struct OnboardingView: View {
                     )
                     VStack(alignment: .leading, spacing: 1) {
                         Text("Accessibility")
-                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .font(AppTypography.labelLarge)
                             .foregroundStyle(.white)
                         Text("Required to hide windows and register global hotkey")
-                            .font(.system(size: 9, design: .rounded))
+                            .font(AppTypography.captionMedium)
                             .foregroundStyle(.white.opacity(0.7))
                     }
                 }
@@ -388,7 +388,7 @@ struct OnboardingView: View {
                     viewModel.grantPermission()
                 } label: {
                     Text("Grant Permission")
-                        .font(.system(size: 10, weight: .heavy, design: .rounded))
+                        .font(AppTypography.buttonSmall)
                         .foregroundStyle(OnboardingColors.warningOrange)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
@@ -402,23 +402,17 @@ struct OnboardingView: View {
     }
 
     private var permissionGrantedPill: some View {
-        HStack {
-            HStack(spacing: 12) {
-                OnboardingIconCircle(
-                    lucideImage: Lucide.lockKeyholeOpen,
-                    color: OnboardingColors.successGreen
-                )
-                Text("Accessibility")
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
-            }
-            Spacer()
+        HStack(spacing: 12) {
+            OnboardingIconCircle(
+                lucideImage: Lucide.lockKeyholeOpen,
+                color: OnboardingColors.successGreen
+            )
+            Text("Accessibility")
+                .font(AppTypography.labelLarge)
+                .foregroundStyle(.white)
             Text("Granted")
-                .font(.system(size: 8, weight: .heavy, design: .rounded))
-                .foregroundStyle(.white.opacity(0.3))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
-                .overlay(Capsule().strokeBorder(.white.opacity(0.2), lineWidth: 0.5))
+                .font(AppTypography.labelSmall)
+                .foregroundStyle(OnboardingColors.successGreen)
         }
         .padding(8)
         .background(OnboardingColors.successGreen.opacity(0.2), in: Capsule())
@@ -434,12 +428,12 @@ struct OnboardingView: View {
             StepIcon(lucideImage: Lucide.keyboard)
 
             Text("Your Panic Hotkey")
-                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .font(AppTypography.displayMedium)
                 .foregroundStyle(.white)
                 .padding(.top, 16)
 
             Text("Press this shortcut anytime to trigger\nNothingHere.")
-                .font(.system(size: 14, design: .rounded))
+                .font(AppTypography.bodyMedium)
                 .foregroundStyle(OnboardingColors.secondaryText)
                 .multilineTextAlignment(.center)
                 .padding(.top, 6)
@@ -489,7 +483,7 @@ struct OnboardingView: View {
             }
 
             Text("Default: \u{2303}\u{2318}Z")
-                .font(.system(size: 12, design: .rounded))
+                .font(AppTypography.bodySmall)
                 .foregroundStyle(OnboardingColors.secondaryText)
                 .padding(.top, 12)
 
@@ -510,12 +504,12 @@ struct OnboardingView: View {
             )
 
             Text("Cover Document")
-                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .font(AppTypography.displayMedium)
                 .foregroundStyle(.white)
                 .padding(.top, 16)
 
             Text("Optionally choose a file to open when\npanic triggers.")
-                .font(.system(size: 14, design: .rounded))
+                .font(AppTypography.bodyMedium)
                 .foregroundStyle(OnboardingColors.secondaryText)
                 .multilineTextAlignment(.center)
                 .padding(.top, 6)
@@ -538,12 +532,12 @@ struct OnboardingView: View {
 
                         VStack(alignment: .leading, spacing: 1) {
                             Text(url.lastPathComponent)
-                                .font(.system(size: 12, weight: .bold, design: .rounded))
+                                .font(AppTypography.labelMedium)
                                 .foregroundStyle(.white)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
                             Text(url.deletingLastPathComponent().path)
-                                .font(.system(size: 9, design: .rounded))
+                                .font(AppTypography.captionMedium)
                                 .foregroundStyle(.white.opacity(0.6))
                                 .lineLimit(1)
                                 .truncationMode(.middle)
@@ -559,7 +553,7 @@ struct OnboardingView: View {
                         viewModel.documentManager.pickDocument()
                     } label: {
                         Text("Change")
-                            .font(.system(size: 10, weight: .heavy, design: .rounded))
+                            .font(AppTypography.buttonSmall)
                             .foregroundStyle(.white)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
@@ -597,7 +591,7 @@ struct OnboardingView: View {
                     viewModel.documentManager.pickDocument()
                 } label: {
                     Text("Choose File")
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .font(AppTypography.buttonLarge)
                         .foregroundStyle(.white)
                         .padding(.horizontal, 24)
                         .padding(.vertical, 10)
@@ -616,7 +610,7 @@ struct OnboardingView: View {
             }
 
             Text("You can skip this step")
-                .font(.system(size: 12, design: .rounded))
+                .font(AppTypography.bodySmall)
                 .foregroundStyle(OnboardingColors.secondaryText)
                 .padding(.top, 8)
 
@@ -634,12 +628,12 @@ struct OnboardingView: View {
             StepIcon(lucideImage: Lucide.laptopMinimalCheck)
 
             Text("You're All Set")
-                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .font(AppTypography.displayMedium)
                 .foregroundStyle(.white)
                 .padding(.top, 16)
 
             Text("NothingHere is ready.\nIt lives in your menu bar.")
-                .font(.system(size: 14, design: .rounded))
+                .font(AppTypography.bodyMedium)
                 .foregroundStyle(OnboardingColors.secondaryText)
                 .multilineTextAlignment(.center)
                 .padding(.top, 6)
@@ -648,23 +642,17 @@ struct OnboardingView: View {
             VStack(spacing: 20) {
                 // Permission row (conditional)
                 if viewModel.isAccessibilityGranted {
-                    HStack {
-                        HStack(spacing: 12) {
-                            OnboardingIconCircle(
-                                lucideImage: Lucide.lockKeyholeOpen,
-                                color: OnboardingColors.successGreen
-                            )
-                            Text("Accessibility permission")
-                                .font(.system(size: 13, weight: .bold, design: .rounded))
-                                .foregroundStyle(.white)
-                        }
-                        Spacer()
+                    HStack(spacing: 12) {
+                        OnboardingIconCircle(
+                            lucideImage: Lucide.lockKeyholeOpen,
+                            color: OnboardingColors.successGreen
+                        )
+                        Text("Accessibility permission")
+                            .font(AppTypography.labelLarge)
+                            .foregroundStyle(.white)
                         Text("Granted")
-                            .font(.system(size: 8, weight: .heavy, design: .rounded))
-                            .foregroundStyle(.white.opacity(0.3))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 6)
-                            .overlay(Capsule().strokeBorder(.white.opacity(0.2), lineWidth: 0.5))
+                            .font(AppTypography.labelSmall)
+                            .foregroundStyle(OnboardingColors.successGreen)
                     }
                     .padding(8)
                     .background(OnboardingColors.successGreen.opacity(0.2), in: Capsule())
@@ -677,7 +665,7 @@ struct OnboardingView: View {
                                 color: OnboardingColors.darkOrangeCircle
                             )
                             Text("Accessibility permission")
-                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .font(AppTypography.labelLarge)
                                 .foregroundStyle(.white)
                         }
                         Spacer()
@@ -685,7 +673,7 @@ struct OnboardingView: View {
                             viewModel.grantPermission()
                         } label: {
                             Text("Grant Permission")
-                                .font(.system(size: 10, weight: .heavy, design: .rounded))
+                                .font(AppTypography.buttonSmall)
                                 .foregroundStyle(OnboardingColors.warningOrange)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
@@ -705,7 +693,7 @@ struct OnboardingView: View {
                             lucideIcon(Lucide.keyboard, size: 13)
                                 .foregroundStyle(OnboardingColors.accentBlue)
                             Text("Hotkey")
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .font(AppTypography.font(size: 13, weight: .medium))
                                 .foregroundStyle(.white)
                         }
 
@@ -735,7 +723,7 @@ struct OnboardingView: View {
                 viewModel.complete()
             } label: {
                 Text("Open Settings")
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .font(AppTypography.buttonLarge)
                     .foregroundStyle(.white)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 10)
@@ -784,7 +772,7 @@ struct OnboardingView: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.secondary)
-                        .font(.title3)
+                        .font(AppTypography.headingMedium)
                 }
                 .buttonStyle(.plain)
                 .focusEffectDisabled()
@@ -794,11 +782,11 @@ struct OnboardingView: View {
                 EmptyView()
             } else if let conflict = viewModel.hotkeyRecorder.pendingConflict {
                 Text(conflict)
-                    .font(.caption)
+                    .font(AppTypography.captionLarge)
                     .foregroundStyle(.orange)
             } else {
                 Text("Recording...")
-                    .font(.callout)
+                    .font(AppTypography.bodyMedium)
                     .foregroundStyle(.secondary)
             }
 
