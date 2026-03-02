@@ -640,50 +640,8 @@ struct OnboardingView: View {
 
             // Summary items
             VStack(spacing: 20) {
-                // Permission row (conditional)
-                if viewModel.isAccessibilityGranted {
-                    HStack(spacing: 12) {
-                        OnboardingIconCircle(
-                            lucideImage: Lucide.lockKeyholeOpen,
-                            color: OnboardingColors.successGreen
-                        )
-                        Text("Accessibility permission")
-                            .font(AppTypography.labelLarge)
-                            .foregroundStyle(.white)
-                        Text("Granted")
-                            .font(AppTypography.labelSmall)
-                            .foregroundStyle(OnboardingColors.successGreen)
-                    }
-                    .padding(8)
-                    .background(OnboardingColors.successGreen.opacity(0.2), in: Capsule())
-                    .overlay(Capsule().strokeBorder(OnboardingColors.successGreen, lineWidth: 1))
-                } else {
-                    HStack {
-                        HStack(spacing: 12) {
-                            OnboardingIconCircle(
-                                lucideImage: Lucide.lockKeyhole,
-                                color: OnboardingColors.darkOrangeCircle
-                            )
-                            Text("Accessibility permission")
-                                .font(AppTypography.labelLarge)
-                                .foregroundStyle(.white)
-                        }
-                        Spacer()
-                        Button {
-                            viewModel.grantPermission()
-                        } label: {
-                            Text("Grant Permission")
-                                .font(AppTypography.buttonSmall)
-                                .foregroundStyle(OnboardingColors.warningOrange)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(.white, in: Capsule())
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(8)
-                    .background(OnboardingColors.warningOrange, in: Capsule())
-                }
+                // Menu bar preview
+                menuBarPreview
 
                 // Hotkey card
                 if let keyName = viewModel.hotkeyRecorder.currentKeyName {
@@ -743,6 +701,76 @@ struct OnboardingView: View {
             Spacer()
         }
         .padding(.horizontal, 48)
+    }
+
+    // MARK: - Menu Bar Preview
+
+    private var menuBarPreview: some View {
+        HStack(spacing: 20) {
+            HStack(spacing: 8) {
+                lucideIcon(Lucide.arrowRight, size: 16)
+                    .foregroundStyle(OnboardingColors.accentBlue)
+
+                Image("TopLogoOn")
+                    .renderingMode(.template)
+                    .resizable()
+                    .frame(width: 16, height: 16)
+                    .foregroundStyle(.white)
+            }
+
+            Image("TopSetting")
+                .renderingMode(.template)
+                .resizable()
+                .frame(width: 16, height: 16)
+                .foregroundStyle(.white)
+
+            Text(currentTimeString)
+                .font(AppTypography.font(size: 13, weight: .medium))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(
+            LinearGradient(
+                stops: [
+                    .init(color: Color(hex: 0x222222), location: 0.2),
+                    .init(color: Color(hex: 0x333333), location: 1.0)
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        )
+        .clipShape(
+            UnevenRoundedRectangle(
+                topLeadingRadius: 0,
+                bottomLeadingRadius: 0,
+                bottomTrailingRadius: 0,
+                topTrailingRadius: 12
+            )
+        )
+        .overlay(
+            UnevenRoundedRectangle(
+                topLeadingRadius: 0,
+                bottomLeadingRadius: 0,
+                bottomTrailingRadius: 0,
+                topTrailingRadius: 12
+            )
+            .strokeBorder(
+                LinearGradient(
+                    colors: [Color(hex: 0x222222), Color(hex: 0x666666)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                ),
+                lineWidth: 1
+            )
+        )
+    }
+
+    private var currentTimeString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE MMM d h:mm a"
+        return formatter.string(from: Date())
     }
 
     // MARK: - Recording Popover
