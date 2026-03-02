@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NothingHere — One key press. Clean screen. Zero evidence.</title>
+  <meta name="description" content="NothingHere is a macOS utility that hides all windows, mutes sound, and opens a cover document with a single key press.">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="NothingHere — Panic Button for macOS">
+  <meta property="og:description" content="One key press. Clean screen. Zero evidence. Hide windows, mute sound, open a cover document instantly.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://solee0524.github.io/NothingHere/">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="NothingHere — Panic Button for macOS">
+  <meta name="twitter:description" content="One key press. Clean screen. Zero evidence.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ========== Navigation ========== -->
+  <nav class="nav" role="navigation" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a href="#" class="nav-brand" aria-label="NothingHere home">
+        <!-- Cat logo (inline SVG) -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="5 12 118 116" aria-hidden="true">
+          <path fill="currentColor" d="M64.22,25.69a2.84,2.84,0,0,0,2.84-2.84V14.49a2.84,2.84,0,1,0-5.67,0v8.36A2.84,2.84,0,0,0,64.22,25.69Z"/>
+          <path fill="currentColor" d="M41.2,29.78A2.83,2.83,0,1,0,46.11,27L41.92,19.7A2.84,2.84,0,0,0,37,22.54Z"/>
+          <path fill="currentColor" d="M19.93,41.7l7.24,4.18A2.84,2.84,0,1,0,30,41l-7.25-4.18a2.83,2.83,0,1,0-2.83,4.91Z"/>
+          <path fill="currentColor" d="M99.86,46.26a2.77,2.77,0,0,0,1.41-.38l7.25-4.18a2.84,2.84,0,1,0-2.84-4.91L98.44,41a2.83,2.83,0,0,0,1.42,5.29Z"/>
+          <path fill="currentColor" d="M83.38,30.82a2.79,2.79,0,0,0,1.41.38,2.83,2.83,0,0,0,2.46-1.42l4.18-7.24a2.84,2.84,0,0,0-4.91-2.84L82.34,27A2.83,2.83,0,0,0,83.38,30.82Z"/>
+          <path fill="currentColor" d="M53.24,90.89a3.45,3.45,0,0,0-3.45,3.44v12.06a3.45,3.45,0,1,0,6.89,0V94.33A3.45,3.45,0,0,0,53.24,90.89Z"/>
+          <path fill="currentColor" d="M86.63,90.89a3.45,3.45,0,0,0-3.44,3.44v12.06a3.45,3.45,0,1,0,6.89,0V94.33A3.45,3.45,0,0,0,86.63,90.89Z"/>
+          <path fill="currentColor" d="M108.15,64.46a4,4,0,0,0-6-3.23L86.48,70.42h0a39.94,39.94,0,0,0-18.87-4.7h0a40,40,0,0,0-18.87,4.7h0L32.18,60.69a4,4,0,0,0-5.93,2.6L12.15,128h99.42ZM58.21,105.58a7.3,7.3,0,1,1-14.59,0V95.14a7.3,7.3,0,1,1,14.59,0Zm33.4,0a7.3,7.3,0,0,1-14.6,0V95.14a7.3,7.3,0,0,1,14.6,0Z"/>
+        </svg>
+        NothingHere
+      </a>
+
+      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#guard-mode">Guard Mode</a></li>
+        <li><a href="#download">Download</a></li>
+        <li>
+          <a href="https://github.com/solee0524/NothingHere" class="github-link" aria-label="View on GitHub" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836a9.59 9.59 0 012.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+            </svg>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ========== Hero ========== -->
+  <header class="hero" id="hero">
+    <div class="container">
+      <!-- Large cat logo -->
+      <div class="hero-logo" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+          <path fill="currentColor" d="M64.22,25.69a2.84,2.84,0,0,0,2.84-2.84V14.49a2.84,2.84,0,1,0-5.67,0v8.36A2.84,2.84,0,0,0,64.22,25.69Z"/>
+          <path fill="currentColor" d="M41.2,29.78A2.83,2.83,0,1,0,46.11,27L41.92,19.7A2.84,2.84,0,0,0,37,22.54Z"/>
+          <path fill="currentColor" d="M19.93,41.7l7.24,4.18A2.84,2.84,0,1,0,30,41l-7.25-4.18a2.83,2.83,0,1,0-2.83,4.91Z"/>
+          <path fill="currentColor" d="M99.86,46.26a2.77,2.77,0,0,0,1.41-.38l7.25-4.18a2.84,2.84,0,1,0-2.84-4.91L98.44,41a2.83,2.83,0,0,0,1.42,5.29Z"/>
+          <path fill="currentColor" d="M83.38,30.82a2.79,2.79,0,0,0,1.41.38,2.83,2.83,0,0,0,2.46-1.42l4.18-7.24a2.84,2.84,0,0,0-4.91-2.84L82.34,27A2.83,2.83,0,0,0,83.38,30.82Z"/>
+          <path fill="currentColor" d="M53.24,90.89a3.45,3.45,0,0,0-3.45,3.44v12.06a3.45,3.45,0,1,0,6.89,0V94.33A3.45,3.45,0,0,0,53.24,90.89Z"/>
+          <path fill="currentColor" d="M86.63,90.89a3.45,3.45,0,0,0-3.44,3.44v12.06a3.45,3.45,0,1,0,6.89,0V94.33A3.45,3.45,0,0,0,86.63,90.89Z"/>
+          <path fill="currentColor" d="M108.15,64.46a4,4,0,0,0-6-3.23L86.48,70.42h0a39.94,39.94,0,0,0-18.87-4.7h0a40,40,0,0,0-18.87,4.7h0L32.18,60.69a4,4,0,0,0-5.93,2.6L12.15,128h99.42ZM58.21,105.58a7.3,7.3,0,1,1-14.59,0V95.14a7.3,7.3,0,1,1,14.59,0Zm33.4,0a7.3,7.3,0,0,1-14.6,0V95.14a7.3,7.3,0,0,1,14.6,0Z"/>
+        </svg>
+      </div>
+
+      <h1 class="hero-title">NothingHere</h1>
+      <p class="hero-tagline">One key press. Clean screen. Zero evidence.</p>
+
+      <div class="hero-cta">
+        <a href="https://github.com/solee0524/NothingHere/releases/latest" class="btn btn-primary">
+          <!-- Apple logo -->
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+          </svg>
+          Download for macOS
+        </a>
+        <a href="https://github.com/solee0524/NothingHere" class="btn btn-outline" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836a9.59 9.59 0 012.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+          </svg>
+          View on GitHub
+        </a>
+      </div>
+
+      <p class="hero-meta">
+        macOS 15.0+ <span>|</span> Free &amp; Open Source <span>|</span> ~5.9 MB
+      </p>
+    </div>
+  </header>
+
+  <!-- ========== Features ========== -->
+  <section id="features">
+    <div class="container">
+      <h2 class="section-title reveal">Three actions. One key.</h2>
+      <p class="section-subtitle reveal">NothingHere performs three critical actions simultaneously the moment you press your hotkey.</p>
+
+      <div class="features-grid">
+        <!-- Hide All Windows -->
+        <div class="feature-card reveal">
+          <div class="feature-icon blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <h3>Hide All Windows</h3>
+          <p>Instantly minimizes or hides every visible window across all applications. Your screen goes clean in milliseconds.</p>
+        </div>
+
+        <!-- Mute Sound -->
+        <div class="feature-card reveal">
+          <div class="feature-icon orange">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <line x1="23" y1="9" x2="17" y2="15"/>
+              <line x1="17" y1="9" x2="23" y2="15"/>
+            </svg>
+          </div>
+          <h3>Mute Sound</h3>
+          <p>Mutes all system audio instantly. Music, podcasts, videos — everything goes silent simultaneously.</p>
+        </div>
+
+        <!-- Open Cover Document -->
+        <div class="feature-card reveal">
+          <div class="feature-icon green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <h3>Open Cover Document</h3>
+          <p>Launches your pre-configured cover file — a spreadsheet, document, or anything that looks like real work.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== How It Works ========== -->
+  <section id="how-it-works" class="guard-section">
+    <div class="container">
+      <h2 class="section-title reveal">How it works</h2>
+      <p class="section-subtitle reveal">Set up once, use forever. Three simple steps to total screen privacy.</p>
+
+      <div class="steps reveal">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Set your hotkey</h3>
+          <p>Choose any key combination. <span class="keycap">&#x2318;</span> <span class="keycap">&#x21E7;</span> <span class="keycap">H</span> or whatever feels natural.</p>
+        </div>
+
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Configure your cover</h3>
+          <p>Pick a document, spreadsheet, or any file that looks like legitimate work.</p>
+        </div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Press and relax</h3>
+          <p>One key press hides everything, mutes sound, and opens your cover. Done in milliseconds.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== Guard Mode ========== -->
+  <section id="guard-mode">
+    <div class="container">
+      <div class="guard-grid">
+        <div class="guard-text reveal">
+          <span class="guard-badge">New in v1.1</span>
+          <h2>Guard Mode</h2>
+          <p>Guard Mode lives in your menu bar. When armed, NothingHere watches for any key press and is ready to act instantly.</p>
+          <p>Toggle between armed and disarmed states with a single click. The menu bar icon changes to reflect the current state — so you always know if you're protected.</p>
+        </div>
+
+        <div class="guard-demo reveal">
+          <!-- Menu bar simulation -->
+          <div class="menu-bar-mock armed">
+            <!-- Armed cat icon (alert, with rays) -->
+            <div class="menu-icon armed-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="22" height="22" aria-hidden="true">
+                <path fill="currentColor" d="M64.45,15.47a3.11,3.11,0,0,0,3.11-3.11V3.2a3.11,3.11,0,1,0-6.22,0v9.16A3.11,3.11,0,0,0,64.45,15.47Z"/>
+                <path fill="currentColor" d="M39.22,20a3.1,3.1,0,1,0,5.38-3.1L40,8.91A3.11,3.11,0,1,0,34.64,12Z"/>
+                <path fill="currentColor" d="M15.92,33l7.94,4.58A3.1,3.1,0,1,0,27,32.21L19,27.63A3.1,3.1,0,0,0,15.92,33Z"/>
+                <path fill="currentColor" d="M103.5,38a3.14,3.14,0,0,0,1.55-.42L113,33a3.1,3.1,0,1,0-3.1-5.38l-7.94,4.58A3.11,3.11,0,0,0,103.5,38Z"/>
+                <path fill="currentColor" d="M85.44,21.09A3.09,3.09,0,0,0,89.68,20L94.26,12a3.11,3.11,0,1,0-5.38-3.11L84.3,16.85A3.11,3.11,0,0,0,85.44,21.09Z"/>
+                <path fill="currentColor" d="M52.41,86.9a3.79,3.79,0,0,0-3.77,3.78v13.21a3.78,3.78,0,0,0,7.55,0V90.68A3.79,3.79,0,0,0,52.41,86.9Z"/>
+                <path fill="currentColor" d="M89,86.9a3.79,3.79,0,0,0-3.77,3.78v13.21a3.78,3.78,0,0,0,7.55,0V90.68A3.79,3.79,0,0,0,89,86.9Z"/>
+                <path fill="currentColor" d="M112.58,58A4.38,4.38,0,0,0,106,54.4L88.84,64.47h0a43.8,43.8,0,0,0-20.68-5.16h0a43.76,43.76,0,0,0-20.67,5.16h0L29.34,53.82a4.38,4.38,0,0,0-6.5,2.85L7.4,127.56H116.32ZM57.86,103a8,8,0,0,1-8,8h0a8,8,0,0,1-8-8V91.56a8,8,0,0,1,8-8h0a8,8,0,0,1,8,8Zm36.59,0a8,8,0,0,1-8,8h0a8,8,0,0,1-8-8V91.56a8,8,0,0,1,8-8h0a8,8,0,0,1,8,8Z"/>
+              </svg>
+            </div>
+            <!-- Disarmed cat icon (sleeping, no rays) -->
+            <div class="menu-icon disarmed-icon" style="display:none;">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="22" height="22" aria-hidden="true">
+                <path fill="currentColor" d="M115.31,10a4.81,4.81,0,0,0-7.22-3.75l-19,11.17h0a48.1,48.1,0,0,0-22.67-5.65h0a48.07,48.07,0,0,0-22.67,5.65h0L24.43,6.12a4.8,4.8,0,0,0-7.2,3.54L2.36,128H125.05ZM55.12,59.7a8.77,8.77,0,0,1-17.53,0V47.16a8.77,8.77,0,1,1,17.53,0Zm40.11,0a8.77,8.77,0,0,1-17.53,0V47.16a8.77,8.77,0,1,1,17.53,0Z"/>
+                <rect fill="currentColor" x="42.8" y="42.05" width="8.28" height="22.76" rx="4.14"/>
+                <rect fill="currentColor" x="82.91" y="42.05" width="8.28" height="22.76" rx="4.14"/>
+              </svg>
+            </div>
+            <span class="guard-pill pill-armed armed">Armed</span>
+          </div>
+
+          <!-- State description -->
+          <div class="guard-state">
+            <div class="guard-state-item guard-armed">
+              <span class="guard-label">Watching for any key press</span>
+            </div>
+            <div class="guard-state-item guard-disarmed hidden">
+              <span class="guard-label">Guard disabled</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== Download CTA ========== -->
+  <section id="download" class="download-section">
+    <div class="container reveal">
+      <h2>Ready to disappear?</h2>
+      <p class="download-sub">Download NothingHere and set up your panic button in seconds.</p>
+      <a href="https://github.com/solee0524/NothingHere/releases/latest" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+        </svg>
+        Download for macOS
+      </a>
+    </div>
+  </section>
+
+  <!-- ========== Footer ========== -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="5 12 118 116" aria-hidden="true">
+          <path fill="currentColor" d="M64.22,25.69a2.84,2.84,0,0,0,2.84-2.84V14.49a2.84,2.84,0,1,0-5.67,0v8.36A2.84,2.84,0,0,0,64.22,25.69Z"/>
+          <path fill="currentColor" d="M41.2,29.78A2.83,2.83,0,1,0,46.11,27L41.92,19.7A2.84,2.84,0,0,0,37,22.54Z"/>
+          <path fill="currentColor" d="M19.93,41.7l7.24,4.18A2.84,2.84,0,1,0,30,41l-7.25-4.18a2.83,2.83,0,1,0-2.83,4.91Z"/>
+          <path fill="currentColor" d="M99.86,46.26a2.77,2.77,0,0,0,1.41-.38l7.25-4.18a2.84,2.84,0,1,0-2.84-4.91L98.44,41a2.83,2.83,0,0,0,1.42,5.29Z"/>
+          <path fill="currentColor" d="M83.38,30.82a2.79,2.79,0,0,0,1.41.38,2.83,2.83,0,0,0,2.46-1.42l4.18-7.24a2.84,2.84,0,0,0-4.91-2.84L82.34,27A2.83,2.83,0,0,0,83.38,30.82Z"/>
+          <path fill="currentColor" d="M53.24,90.89a3.45,3.45,0,0,0-3.45,3.44v12.06a3.45,3.45,0,1,0,6.89,0V94.33A3.45,3.45,0,0,0,53.24,90.89Z"/>
+          <path fill="currentColor" d="M86.63,90.89a3.45,3.45,0,0,0-3.44,3.44v12.06a3.45,3.45,0,1,0,6.89,0V94.33A3.45,3.45,0,0,0,86.63,90.89Z"/>
+          <path fill="currentColor" d="M108.15,64.46a4,4,0,0,0-6-3.23L86.48,70.42h0a39.94,39.94,0,0,0-18.87-4.7h0a40,40,0,0,0-18.87,4.7h0L32.18,60.69a4,4,0,0,0-5.93,2.6L12.15,128h99.42ZM58.21,105.58a7.3,7.3,0,1,1-14.59,0V95.14a7.3,7.3,0,1,1,14.59,0Zm33.4,0a7.3,7.3,0,0,1-14.6,0V95.14a7.3,7.3,0,0,1,14.6,0Z"/>
+        </svg>
+        &copy; 2026 NothingHere
+      </div>
+
+      <ul class="footer-links">
+        <li><a href="https://github.com/solee0524/NothingHere" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="https://github.com/solee0524/NothingHere/releases" target="_blank" rel="noopener">Releases</a></li>
+        <li><a href="https://github.com/solee0524/NothingHere/blob/main/LICENSE" target="_blank" rel="noopener">License</a></li>
+        <li><a href="https://ko-fi.com/solee0524" target="_blank" rel="noopener">Support on Ko-fi</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

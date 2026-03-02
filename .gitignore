@@ -30,5 +30,5 @@ openspec/
 # Xcode project
 *.xcodeproj/
 
-# Dev planning docs
-docs/
+# Internal docs (not for deployment)
+internal-docs/
