@@ -576,6 +576,44 @@ section {
   font-weight: 500;
 }
 
+/* ========== The Story ========== */
+.story-section {
+  background: var(--color-bg-alt);
+}
+
+.story-content {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: left;
+  position: relative;
+}
+
+.story-quote {
+  font-size: 120px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-accent);
+  opacity: 0.15;
+  position: absolute;
+  top: -24px;
+  left: -24px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.story-content p {
+  font-size: 18px;
+  color: var(--color-text-secondary);
+  line-height: 1.75;
+  margin-bottom: 16px;
+}
+
+.story-content p:last-child {
+  margin-bottom: 0;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
 /* ========== Download CTA ========== */
 .download-section {
   text-align: center;
@@ -796,6 +834,16 @@ section {
 
   .features-grid {
     grid-template-columns: 1fr;
+  }
+
+  .story-quote {
+    font-size: 80px;
+    top: -16px;
+    left: -8px;
+  }
+
+  .story-content p {
+    font-size: 16px;
   }
 
   .download-section h2 {
