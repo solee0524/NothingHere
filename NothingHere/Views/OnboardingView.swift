@@ -412,6 +412,7 @@ struct OnboardingView: View {
             Text("Granted")
                 .font(AppTypography.labelSmall)
                 .foregroundStyle(OnboardingColors.successGreen)
+                .padding(.leading, 8)
         }
         .padding(8)
         .background(OnboardingColors.successGreen.opacity(0.2), in: Capsule())
