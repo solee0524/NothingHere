@@ -5,6 +5,7 @@
 
 import LucideIcons
 import SwiftUI
+import UniformTypeIdentifiers
 
 // MARK: - Design Tokens
 
@@ -300,7 +301,7 @@ struct OnboardingView: View {
             VStack(alignment: .leading, spacing: 14) {
                 welcomeFeatureRow(icon: Lucide.appWindowMac, text: "Hides all windows instantly")
                 welcomeFeatureRow(icon: Lucide.bellOff, text: "Mutes system sound")
-                welcomeFeatureRow(icon: Lucide.fileCheckCorner, text: "Opens a cover document")
+                welcomeFeatureRow(icon: Lucide.fileCheckCorner, text: "Opens a cover document or app")
             }
             .padding(.top, 28)
 
@@ -492,23 +493,27 @@ struct OnboardingView: View {
         .padding(.horizontal, 48)
     }
 
-    // MARK: - Document Step
+    // MARK: - Cover Action Step
 
     private var documentStep: some View {
-        VStack(spacing: 0) {
+        let manager = viewModel.coverActionManager
+        let hasDocument = manager.documentURL != nil
+        let hasApp = manager.coverAppBundleID != nil
+
+        return VStack(spacing: 0) {
             Spacer()
 
             StepIcon(
-                lucideImage: viewModel.documentManager.documentURL != nil
+                lucideImage: (hasDocument || hasApp)
                     ? Lucide.fileCheckCorner : Lucide.filePlusCorner
             )
 
-            Text("Cover Document")
+            Text("Cover Action")
                 .font(AppTypography.displayMedium)
                 .foregroundStyle(.white)
                 .padding(.top, 16)
 
-            Text("Optionally choose a file to open when\npanic triggers.")
+            Text("Optionally choose a file or app to open\nwhen panic triggers.")
                 .font(AppTypography.bodyMedium)
                 .foregroundStyle(OnboardingColors.secondaryText)
                 .multilineTextAlignment(.center)
@@ -521,10 +526,9 @@ struct OnboardingView: View {
                 .padding(.horizontal, 60)
                 .padding(.top, 28)
 
-            if let url = viewModel.documentManager.documentURL {
+            if let url = manager.documentURL {
                 // File selected state
                 HStack(spacing: 8) {
-                    // Info bar
                     HStack(spacing: 12) {
                         lucideIcon(Lucide.image, size: 24)
                             .foregroundStyle(OnboardingColors.accentBlue)
@@ -548,9 +552,8 @@ struct OnboardingView: View {
                     .background(OnboardingColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 6))
                     .layoutPriority(-1)
 
-                    // Action buttons
                     Button {
-                        viewModel.documentManager.pickDocument()
+                        manager.pickDocument()
                     } label: {
                         Text("Change")
                             .font(AppTypography.buttonSmall)
@@ -565,7 +568,7 @@ struct OnboardingView: View {
                     .buttonStyle(.plain)
 
                     Button {
-                        viewModel.documentManager.removeDocument()
+                        manager.removeDocument()
                     } label: {
                         lucideIcon(Lucide.fileX, size: 12)
                             .foregroundStyle(.white)
@@ -586,27 +589,105 @@ struct OnboardingView: View {
                         .strokeBorder(OnboardingColors.cardBorder.opacity(0.3), lineWidth: 0.5)
                 )
                 .padding(.top, 28)
-            } else {
-                // No file state
-                Button {
-                    viewModel.documentManager.pickDocument()
-                } label: {
-                    Text("Choose File")
-                        .font(AppTypography.buttonLarge)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 10)
-                        .background(
-                            OnboardingColors.accentBlue,
-                            in: RoundedRectangle(cornerRadius: 6)
-                        )
-                        .shadow(
-                            color: OnboardingColors.accentBlue.opacity(0.3),
-                            radius: 12,
-                            y: 6
-                        )
+            } else if let displayName = manager.coverAppDisplayName,
+                      let bundleID = manager.coverAppBundleID {
+                // App selected state
+                HStack(spacing: 8) {
+                    HStack(spacing: 12) {
+                        onboardingAppIcon(for: bundleID)
+                            .resizable()
+                            .frame(width: 24, height: 24)
+
+                        Text(displayName)
+                            .font(AppTypography.labelMedium)
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                    }
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 12)
+                    .background(OnboardingColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 6))
+                    .layoutPriority(-1)
+
+                    Button {
+                        manager.pickApp()
+                    } label: {
+                        Text("Change")
+                            .font(AppTypography.buttonSmall)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(
+                                OnboardingColors.accentBlue,
+                                in: RoundedRectangle(cornerRadius: 6)
+                            )
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        manager.removeApp()
+                    } label: {
+                        lucideIcon(Lucide.fileX, size: 12)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
+                            .background(
+                                OnboardingColors.warningOrange,
+                                in: RoundedRectangle(cornerRadius: 6)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .help("Remove app")
                 }
-                .buttonStyle(.plain)
+                .padding(8)
+                .background(OnboardingColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(OnboardingColors.cardBorder.opacity(0.3), lineWidth: 0.5)
+                )
+                .padding(.top, 28)
+            } else {
+                // No selection — show both buttons
+                HStack(spacing: 12) {
+                    Button {
+                        manager.pickDocument()
+                    } label: {
+                        Text("Choose File")
+                            .font(AppTypography.buttonLarge)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 10)
+                            .background(
+                                OnboardingColors.accentBlue,
+                                in: RoundedRectangle(cornerRadius: 6)
+                            )
+                            .shadow(
+                                color: OnboardingColors.accentBlue.opacity(0.3),
+                                radius: 12,
+                                y: 6
+                            )
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        manager.pickApp()
+                    } label: {
+                        Text("Choose App")
+                            .font(AppTypography.buttonLarge)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 10)
+                            .background(
+                                OnboardingColors.accentBlue,
+                                in: RoundedRectangle(cornerRadius: 6)
+                            )
+                            .shadow(
+                                color: OnboardingColors.accentBlue.opacity(0.3),
+                                radius: 12,
+                                y: 6
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
                 .padding(.top, 28)
             }
 
@@ -618,6 +699,14 @@ struct OnboardingView: View {
             Spacer()
         }
         .padding(.horizontal, 48)
+    }
+
+    private func onboardingAppIcon(for bundleID: String) -> Image {
+        if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) {
+            let nsImage = NSWorkspace.shared.icon(forFile: appURL.path)
+            return Image(nsImage: nsImage)
+        }
+        return Image(nsImage: NSWorkspace.shared.icon(for: .application))
     }
 
     // MARK: - Done Step

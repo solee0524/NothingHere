@@ -7,6 +7,7 @@ import AppKit
 import LucideIcons
 import Sparkle
 import SwiftUI
+import UniformTypeIdentifiers
 
 // MARK: - Design Tokens
 
@@ -159,11 +160,12 @@ struct SettingsView: View {
     let updater: SPUUpdater
 
     enum SettingsTab: String, CaseIterable {
-        case general, help, about
+        case general, whitelist, help, about
 
         var title: String {
             switch self {
             case .general: "General"
+            case .whitelist: "Whitelist"
             case .help: "Help"
             case .about: "About"
             }
@@ -172,6 +174,7 @@ struct SettingsView: View {
         var lucideImage: NSImage {
             switch self {
             case .general: Lucide.copy
+            case .whitelist: Lucide.shieldOff
             case .help: Lucide.album
             case .about: Lucide.mousePointerClick
             }
@@ -256,6 +259,8 @@ struct SettingsView: View {
             switch selectedTab {
             case .general:
                 GeneralTab(viewModel: viewModel)
+            case .whitelist:
+                WhitelistTab(viewModel: viewModel)
             case .help:
                 InstructionsTab()
             case .about:
@@ -295,7 +300,7 @@ private struct GeneralTab: View {
                 permissionCard
                 hotkeyCard
                 guardModeCard
-                documentCard
+                coverActionCard
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 20)
@@ -594,138 +599,421 @@ private struct GeneralTab: View {
         }
     }
 
-    // MARK: - Document Card
+    // MARK: - Cover Action Card
 
-    private var documentCard: some View {
-        let isEnabled = viewModel.documentManager.openDocumentEnabled
-        let pillColor = isEnabled ? DesignColors.accentBlue : DesignColors.secondaryText
+    private var coverActionCard: some View {
+        let manager = viewModel.coverActionManager
+        let hasDocument = manager.documentURL != nil
+        let hasApp = manager.coverAppBundleID != nil
+        let pillColor = manager.isEnabled ? DesignColors.accentBlue : DesignColors.secondaryText
 
-        return SettingsCard(header: "Cover Document", lucideIcon: Lucide.filePlus) {
+        return SettingsCard(header: "Cover Action", lucideIcon: Lucide.filePlus) {
             VStack(alignment: .leading, spacing: 12) {
                 StatusPill(color: pillColor) {
                     HStack(spacing: 12) {
-                        IconCircle(lucideImage: Lucide.fileCheck, color: pillColor)
-                        Text("Open a file when panic is triggered")
-                            .font(AppTypography.font(size: 11, weight: .bold))
+                        IconCircle(
+                            lucideImage: Lucide.filePlus,
+                            color: manager.isEnabled
+                                ? DesignColors.accentBlue : DesignColors.secondaryText.opacity(0.5)
+                        )
+                        Text("Open a file or app when panic triggers")
+                            .font(AppTypography.labelLarge)
                             .foregroundStyle(.white)
                     }
                 } trailing: {
-                    Toggle(
-                        "",
-                        isOn: Bindable(viewModel.documentManager).openDocumentEnabled
-                    )
-                    .toggleStyle(.switch)
-                    .labelsHidden()
-                    .controlSize(.small)
-                    .tint(DesignColors.accentBlue)
+                    Toggle("", isOn: Bindable(manager).isEnabled)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
                 }
 
-                if let url = viewModel.documentManager.documentURL {
-                    HStack(spacing: 12) {
-                        fileIcon(for: url)
-                            .resizable()
-                            .frame(width: 28, height: 28)
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(url.lastPathComponent)
-                                .font(AppTypography.labelMedium)
-                                .foregroundStyle(.white)
-                            Text(url.deletingLastPathComponent().path)
-                                .font(AppTypography.captionMedium)
-                                .foregroundStyle(.white.opacity(0.6))
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                        }
-                        Spacer()
+                Group {
+                    if hasDocument, let url = manager.documentURL {
+                        // File selected
+                        coverSelectedFileRow(url: url, manager: manager)
 
                         Button {
-                            viewModel.documentManager.pickDocument()
+                            manager.pickApp()
                         } label: {
-                            Text("Change")
-                                .font(AppTypography.buttonSmall)
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 6))
-                                .shadow(
-                                    color: DesignColors.accentBlue.opacity(0.3),
-                                    radius: 12,
-                                    y: 6
-                                )
+                            Text("or choose an app instead \u{2192}")
+                                .font(AppTypography.captionLarge)
+                                .foregroundStyle(DesignColors.accentBlue)
                         }
                         .buttonStyle(.plain)
+                        .frame(maxWidth: .infinity, alignment: .center)
+
+                    } else if hasApp,
+                              let bundleID = manager.coverAppBundleID,
+                              let displayName = manager.coverAppDisplayName {
+                        // App selected
+                        coverSelectedAppRow(
+                            bundleID: bundleID,
+                            displayName: displayName,
+                            appURL: manager.coverAppURL,
+                            manager: manager
+                        )
 
                         Button {
-                            viewModel.documentManager.removeDocument()
+                            manager.pickDocument()
                         } label: {
-                            lucideIcon(Lucide.fileX, size: 12)
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .background(DesignColors.warningOrange, in: RoundedRectangle(cornerRadius: 6))
-                                .shadow(
-                                    color: DesignColors.warningOrange.opacity(0.3),
-                                    radius: 12,
-                                    y: 6
-                                )
+                            Text("or choose a file instead \u{2192}")
+                                .font(AppTypography.captionLarge)
+                                .foregroundStyle(DesignColors.accentBlue)
                         }
                         .buttonStyle(.plain)
-                        .help("Remove document")
+                        .frame(maxWidth: .infinity, alignment: .center)
+
+                    } else {
+                        // Empty: two rows
+                        coverEmptyFileRow(manager: manager)
+                        coverEmptyAppRow(manager: manager)
                     }
-                    .padding(12)
-                    .background(DesignColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .strokeBorder(DesignColors.cardBorder.opacity(0.3), lineWidth: 0.5)
-                    )
-                    .opacity(viewModel.documentManager.openDocumentEnabled ? 1 : 0.5)
-                } else {
-                    HStack(spacing: 12) {
-                        lucideIcon(Lucide.folderPlus, size: 28)
-                            .foregroundStyle(DesignColors.accentBlue)
-                        Text("Add File")
-                            .font(AppTypography.labelMedium)
-                            .foregroundStyle(.white)
-                        Spacer()
-                        Button {
-                            viewModel.documentManager.pickDocument()
-                        } label: {
-                            Text("Choose File")
-                                .font(AppTypography.buttonSmall)
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 6))
-                                .shadow(
-                                    color: DesignColors.accentBlue.opacity(0.3),
-                                    radius: 12,
-                                    y: 6
-                                )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .padding(12)
-                    .background(DesignColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .strokeBorder(DesignColors.cardBorder.opacity(0.3), lineWidth: 0.5)
-                    )
-                }
 
-                if !viewModel.documentManager.isDocumentValid {
-                    Label(
-                        "Selected file is no longer available. Please choose a new file.",
-                        systemImage: "exclamationmark.triangle.fill"
-                    )
-                    .font(AppTypography.captionLarge)
-                    .foregroundStyle(.orange)
+                    // Validation warnings
+                    if !manager.isDocumentValid {
+                        Label(
+                            "Selected file is no longer available. Please choose a new file.",
+                            systemImage: "exclamationmark.triangle.fill"
+                        )
+                        .font(AppTypography.captionLarge)
+                        .foregroundStyle(.orange)
+                    }
+
+                    if !manager.isCoverAppValid {
+                        Label(
+                            "Selected app is no longer available. Please choose a new app.",
+                            systemImage: "exclamationmark.triangle.fill"
+                        )
+                        .font(AppTypography.captionLarge)
+                        .foregroundStyle(.orange)
+                    }
                 }
+                .opacity(manager.isEnabled ? 1 : 0.5)
+                .allowsHitTesting(manager.isEnabled)
             }
         }
+    }
+
+    // MARK: - Cover Action Subviews
+
+    private func coverSelectedFileRow(url: URL, manager: CoverActionManager) -> some View {
+        HStack(spacing: 12) {
+            fileIcon(for: url)
+                .resizable()
+                .frame(width: 28, height: 28)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(url.lastPathComponent)
+                    .font(AppTypography.labelMedium)
+                    .foregroundStyle(.white)
+                Text(url.deletingLastPathComponent().path)
+                    .font(AppTypography.captionMedium)
+                    .foregroundStyle(.white.opacity(0.6))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+            Spacer()
+
+            Button {
+                manager.pickDocument()
+            } label: {
+                Text("Change")
+                    .font(AppTypography.buttonSmall)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 6))
+                    .shadow(color: DesignColors.accentBlue.opacity(0.3), radius: 12, y: 6)
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                manager.removeDocument()
+            } label: {
+                lucideIcon(Lucide.fileX, size: 12)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(DesignColors.warningOrange, in: RoundedRectangle(cornerRadius: 6))
+                    .shadow(color: DesignColors.warningOrange.opacity(0.3), radius: 12, y: 6)
+            }
+            .buttonStyle(.plain)
+            .help("Remove document")
+        }
+        .padding(12)
+        .background(DesignColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(DesignColors.cardBorder.opacity(0.3), lineWidth: 0.5)
+        )
+    }
+
+    private func coverSelectedAppRow(
+        bundleID: String,
+        displayName: String,
+        appURL: URL?,
+        manager: CoverActionManager
+    ) -> some View {
+        HStack(spacing: 12) {
+            appIcon(for: bundleID)
+                .resizable()
+                .frame(width: 28, height: 28)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(displayName)
+                    .font(AppTypography.labelMedium)
+                    .foregroundStyle(.white)
+                if let appURL {
+                    Text(appURL.path)
+                        .font(AppTypography.captionMedium)
+                        .foregroundStyle(.white.opacity(0.6))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+            }
+            Spacer()
+
+            Button {
+                manager.pickApp()
+            } label: {
+                Text("Change")
+                    .font(AppTypography.buttonSmall)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 6))
+                    .shadow(color: DesignColors.accentBlue.opacity(0.3), radius: 12, y: 6)
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                manager.removeApp()
+            } label: {
+                lucideIcon(Lucide.fileX, size: 12)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(DesignColors.warningOrange, in: RoundedRectangle(cornerRadius: 6))
+                    .shadow(color: DesignColors.warningOrange.opacity(0.3), radius: 12, y: 6)
+            }
+            .buttonStyle(.plain)
+            .help("Remove app")
+        }
+        .padding(12)
+        .background(DesignColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(DesignColors.cardBorder.opacity(0.3), lineWidth: 0.5)
+        )
+    }
+
+    private func coverEmptyFileRow(manager: CoverActionManager) -> some View {
+        HStack(spacing: 12) {
+            lucideIcon(Lucide.folderPlus, size: 28)
+                .foregroundStyle(DesignColors.accentBlue)
+            Text("Add File")
+                .font(AppTypography.labelMedium)
+                .foregroundStyle(.white)
+            Spacer()
+            Button {
+                manager.pickDocument()
+            } label: {
+                Text("Choose File")
+                    .font(AppTypography.buttonSmall)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 6))
+                    .shadow(color: DesignColors.accentBlue.opacity(0.3), radius: 12, y: 6)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(12)
+        .background(DesignColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(DesignColors.cardBorder.opacity(0.3), lineWidth: 0.5)
+        )
+    }
+
+    private func coverEmptyAppRow(manager: CoverActionManager) -> some View {
+        HStack(spacing: 12) {
+            lucideIcon(Lucide.appWindow, size: 28)
+                .foregroundStyle(DesignColors.accentBlue)
+            Text("Add App")
+                .font(AppTypography.labelMedium)
+                .foregroundStyle(.white)
+            Spacer()
+            Button {
+                manager.pickApp()
+            } label: {
+                Text("Choose App")
+                    .font(AppTypography.buttonSmall)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 6))
+                    .shadow(color: DesignColors.accentBlue.opacity(0.3), radius: 12, y: 6)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(12)
+        .background(DesignColors.keyBadgeFill, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(DesignColors.cardBorder.opacity(0.3), lineWidth: 0.5)
+        )
     }
 
     private func fileIcon(for url: URL) -> Image {
         let nsImage = NSWorkspace.shared.icon(forFile: url.path)
         return Image(nsImage: nsImage)
+    }
+
+    private func appIcon(for bundleID: String) -> Image {
+        if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) {
+            let nsImage = NSWorkspace.shared.icon(forFile: appURL.path)
+            return Image(nsImage: nsImage)
+        }
+        return Image(nsImage: NSWorkspace.shared.icon(for: .application))
+    }
+}
+
+// MARK: - WhitelistTab
+
+private struct WhitelistTab: View {
+    @Bindable var viewModel: SettingsViewModel
+
+    private var manager: WhitelistManager { viewModel.whitelistManager }
+
+    var body: some View {
+        if manager.apps.isEmpty {
+            emptyState
+        } else {
+            listState
+        }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            Spacer()
+
+            lucideIcon(Lucide.shieldOff, size: 56)
+                .foregroundStyle(DesignColors.secondaryText)
+
+            Text("No Whitelisted Apps")
+                .font(AppTypography.headingMedium)
+                .foregroundStyle(.white)
+
+            Text("Apps added here will stay visible\nwhen panic is triggered.")
+                .font(AppTypography.bodyMedium)
+                .foregroundStyle(DesignColors.secondaryText)
+                .multilineTextAlignment(.center)
+
+            Button {
+                manager.pickApp()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "plus")
+                        .font(AppTypography.buttonSmall)
+                    Text("Add App")
+                        .font(AppTypography.buttonLarge)
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 8))
+                .shadow(
+                    color: DesignColors.accentBlue.opacity(0.3),
+                    radius: 12,
+                    y: 6
+                )
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 8)
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 20)
+    }
+
+    private var listState: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Apps in this list will NOT be hidden when panic triggers.")
+                    .font(AppTypography.captionLarge)
+                    .foregroundStyle(DesignColors.secondaryText)
+
+                VStack(spacing: 0) {
+                    ForEach(Array(manager.apps.enumerated()), id: \.element.id) { index, app in
+                        HStack(spacing: 12) {
+                            whitelistAppIcon(for: app.bundleIdentifier)
+                                .resizable()
+                                .frame(width: 28, height: 28)
+
+                            Text(app.displayName)
+                                .font(AppTypography.labelMedium)
+                                .foregroundStyle(.white)
+
+                            Spacer()
+
+                            Button {
+                                manager.removeApp(bundleIdentifier: app.bundleIdentifier)
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .font(AppTypography.captionLarge)
+                                    .foregroundStyle(DesignColors.secondaryText)
+                                    .frame(width: 28, height: 28)
+                            }
+                            .buttonStyle(.plain)
+                            .help("Remove from whitelist")
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+
+                        if index < manager.apps.count - 1 {
+                            Divider()
+                                .background(DesignColors.cardBorder.opacity(0.3))
+                        }
+                    }
+                }
+                .background(DesignColors.cardFill, in: RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(DesignColors.cardBorder, lineWidth: 1)
+                )
+
+                Button {
+                    manager.pickApp()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus")
+                            .font(AppTypography.buttonSmall)
+                        Text("Add App")
+                            .font(AppTypography.buttonSmall)
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(DesignColors.accentBlue, in: RoundedRectangle(cornerRadius: 6))
+                    .shadow(
+                        color: DesignColors.accentBlue.opacity(0.3),
+                        radius: 12,
+                        y: 6
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 20)
+        }
+    }
+
+    private func whitelistAppIcon(for bundleID: String) -> Image {
+        if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) {
+            let nsImage = NSWorkspace.shared.icon(forFile: appURL.path)
+            return Image(nsImage: nsImage)
+        }
+        return Image(nsImage: NSWorkspace.shared.icon(for: .application))
     }
 }
 

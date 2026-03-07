@@ -20,7 +20,7 @@ final class OnboardingViewModel {
     private(set) var currentStep: Step = .welcome
     private(set) var isAccessibilityGranted = false
     let hotkeyRecorder = HotkeyRecordingManager()
-    let documentManager = CoverDocumentManager.shared
+    let coverActionManager = CoverActionManager.shared
 
     var onComplete: (() -> Void)?
     var requestsSettingsOpen = false

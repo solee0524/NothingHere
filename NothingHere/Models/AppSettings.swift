@@ -5,6 +5,12 @@
 
 import Foundation
 
+enum CoverActionType: String, CaseIterable {
+    case none
+    case document
+    case app
+}
+
 struct AppSettings {
     var hotkeyKeyCode: UInt16 = 0
     var hotkeyModifiers: UInt32 = 0

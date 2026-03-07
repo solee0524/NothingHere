@@ -13,6 +13,7 @@ protocol DocumentLaunchServiceProtocol {
     func pickDocument(completion: @escaping (URL?, Data?) -> Void)
     func resolveBookmark(_ data: Data) -> URL?
     func validateFile(bookmark: Data) -> Bool
+    func openApp(bundleIdentifier: String) -> Bool
 }
 
 final class DocumentLaunchService: DocumentLaunchServiceProtocol {
@@ -94,5 +95,26 @@ final class DocumentLaunchService: DocumentLaunchServiceProtocol {
             logger.warning("Document no longer exists: \(url.path)")
         }
         return exists
+    }
+
+    func openApp(bundleIdentifier: String) -> Bool {
+        guard let appURL = NSWorkspace.shared.urlForApplication(
+            withBundleIdentifier: bundleIdentifier
+        ) else {
+            logger.error("No app found for bundle ID: \(bundleIdentifier, privacy: .public)")
+            return false
+        }
+
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = true
+
+        NSWorkspace.shared.openApplication(at: appURL, configuration: configuration) { app, error in
+            if let error {
+                logger.error("Failed to open app \(bundleIdentifier, privacy: .public): \(error.localizedDescription)")
+            } else if let app {
+                logger.info("Opened app: \(app.localizedName ?? bundleIdentifier, privacy: .public)")
+            }
+        }
+        return true
     }
 }

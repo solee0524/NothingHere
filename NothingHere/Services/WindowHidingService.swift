@@ -31,7 +31,8 @@ final class WindowHidingService: WindowHidingServiceProtocol {
         for app in NSWorkspace.shared.runningApplications {
             guard app.activationPolicy == .regular,
                   !app.isTerminated,
-                  app.processIdentifier != ownPID else { continue }
+                  app.processIdentifier != ownPID,
+                  !excludePIDs.contains(app.processIdentifier) else { continue }
 
             targetPIDs.insert(app.processIdentifier)
             let hidden = app.hide()

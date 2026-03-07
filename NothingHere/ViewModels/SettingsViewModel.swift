@@ -20,9 +20,13 @@ final class SettingsViewModel {
 
     let hotkeyRecorder = HotkeyRecordingManager()
 
-    // MARK: - Document (delegated to CoverDocumentManager)
+    // MARK: - Cover Action (replaces old documentManager)
 
-    let documentManager = CoverDocumentManager.shared
+    let coverActionManager = CoverActionManager.shared
+
+    // MARK: - Whitelist
+
+    let whitelistManager = WhitelistManager.shared
 
     // MARK: - Services
 
@@ -45,7 +49,8 @@ final class SettingsViewModel {
     func onAppear() {
         isAccessibilityGranted = permissionService.isAccessibilityGranted
         startPolling()
-        documentManager.validateDocument()
+        coverActionManager.validateDocument()
+        coverActionManager.validateApp()
     }
 
     func onDisappear() {
