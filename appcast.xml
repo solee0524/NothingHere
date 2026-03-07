@@ -10,6 +10,14 @@
       After running scripts/release.sh, update the edSignature and length fields.
     -->
         <item>
+            <title>1.2.0</title>
+            <pubDate>Sat, 07 Mar 2026 14:15:48 +0800</pubDate>
+            <sparkle:version>13</sparkle:version>
+            <sparkle:shortVersionString>1.2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/solee0524/NothingHere/releases/download/v1.2.0/NothingHere-v1.2.0.dmg" length="6037529" type="application/octet-stream" sparkle:edSignature="n1vuEueGSzAAJuS/o9AxysD99CildCGSfC8sLRiLrh41swrh6z0p+nv5OqzEGJAbaUobFQxg34nDYLpXYEKBDw=="/>
+        </item>
+        <item>
             <title>1.1.1</title>
             <pubDate>Mon, 02 Mar 2026 09:51:11 +0800</pubDate>
             <sparkle:version>12</sparkle:version>
@@ -24,14 +32,6 @@
             <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
             <enclosure url="https://github.com/solee0524/NothingHere/releases/download/v1.1.0/NothingHere-v1.1.0.dmg" length="4959844" type="application/octet-stream" sparkle:edSignature="6NFe5ABLhftvpgWph3SdkuO2TPHwZOB/KErXZG4QP9bnerNlFOVUGUsNmV4e8vW25gNlaT8ZVaqMUeUeUmbwDA=="/>
-        </item>
-        <item>
-            <title>1.0.9</title>
-            <pubDate>Thu, 26 Feb 2026 15:33:28 +0800</pubDate>
-            <sparkle:version>10</sparkle:version>
-            <sparkle:shortVersionString>1.0.9</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>15.6</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/solee0524/NothingHere/releases/download/v1.0.9/NothingHere-v1.0.9.dmg" length="4839181" type="application/octet-stream" sparkle:edSignature="g3kiAUSehQYJ1FjCxjEaWswSVpRzPwQtEgWZlsLSHFmygJbiyw5hgSJJr+GStYbeVUaQ4I3n0TxPyHckjC0tBg=="/>
         </item>
         <item>
             <title>1.0.0</title>
