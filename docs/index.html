@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NothingHere — One key press. Clean screen. Zero evidence.</title>
-  <meta name="description" content="NothingHere is a macOS utility that hides all windows, mutes sound, and opens a cover document with a single key press.">
+  <meta name="description" content="NothingHere is a macOS utility that hides all windows, mutes sound, and opens a cover file or app with a single key press.">
 
   <!-- Open Graph -->
   <meta property="og:title" content="NothingHere — Panic Button for macOS">
-  <meta property="og:description" content="One key press. Clean screen. Zero evidence. Hide windows, mute sound, open a cover document instantly.">
+  <meta property="og:description" content="One key press. Clean screen. Zero evidence. Hide windows, mute sound, open a cover file or app instantly.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://solee0524.github.io/NothingHere/">
 
@@ -51,6 +51,7 @@
         <li><a href="#features">Features</a></li>
         <li><a href="#how-it-works">How It Works</a></li>
         <li><a href="#guard-mode">Guard Mode</a></li>
+        <li><a href="#whitelist">Whitelist</a></li>
         <li><a href="#story">Story</a></li>
         <li><a href="#download">Download</a></li>
         <li>
@@ -92,7 +93,7 @@
       </div>
 
       <p class="hero-meta">
-        macOS 15.0+ <span>|</span> Free &amp; Open Source <span>|</span> ~5.9 MB
+        macOS 15.0+ <span>|</span> Free &amp; Open Source <span>|</span> ~5.8 MB
       </p>
     </div>
   </header>
@@ -130,7 +131,7 @@
           <p>Mutes all system audio instantly. Music, podcasts, videos — everything goes silent simultaneously.</p>
         </div>
 
-        <!-- Open Cover Document -->
+        <!-- Cover Action -->
         <div class="feature-card reveal">
           <div class="feature-icon green">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -141,8 +142,8 @@
               <polyline points="10 9 9 9 8 9"/>
             </svg>
           </div>
-          <h3>Open Cover Document</h3>
-          <p>Launches your pre-configured cover file — a spreadsheet, document, or anything that looks like real work.</p>
+          <h3>Cover Action</h3>
+          <p>Opens a cover file or launches an app — a spreadsheet, Slack, Xcode, or anything that looks like real work.</p>
         </div>
       </div>
     </div>
@@ -164,7 +165,7 @@
         <div class="step">
           <div class="step-number">2</div>
           <h3>Configure your cover</h3>
-          <p>Pick a document, spreadsheet, or any file that looks like legitimate work.</p>
+          <p>Pick a file or an app — a spreadsheet, Slack, Xcode, anything that looks like legitimate work.</p>
         </div>
 
         <div class="step">
@@ -222,6 +223,47 @@
             <div class="guard-state-item guard-disarmed hidden">
               <span class="guard-label">Guard disabled</span>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== Whitelist ========== -->
+  <section id="whitelist">
+    <div class="container">
+      <div class="guard-grid">
+        <div class="guard-text reveal">
+          <span class="guard-badge">New in v1.2</span>
+          <h2>App Whitelist</h2>
+          <p>Some apps should stay visible when panic triggers. Add them to the whitelist and they won't be hidden — perfect for keeping your music player, terminal, or messaging app running in plain sight.</p>
+          <p>Combined with Cover Action, you can now choose to open an app instead of a file. Pick Slack, Xcode, or any app that screams "I'm working" — file and app are mutually exclusive, so there's no confusion about what will launch.</p>
+        </div>
+
+        <div class="guard-demo reveal">
+          <div class="whitelist-mock">
+            <div class="whitelist-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <line x1="9" y1="12" x2="15" y2="12"/>
+              </svg>
+              <span>Whitelisted Apps</span>
+            </div>
+            <div class="whitelist-items">
+              <div class="whitelist-item">
+                <span class="whitelist-dot green"></span>
+                Terminal
+              </div>
+              <div class="whitelist-item">
+                <span class="whitelist-dot green"></span>
+                Spotify
+              </div>
+              <div class="whitelist-item">
+                <span class="whitelist-dot green"></span>
+                Slack
+              </div>
+            </div>
+            <div class="whitelist-caption">These apps stay visible during panic</div>
           </div>
         </div>
       </div>
