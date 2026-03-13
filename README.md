@@ -33,6 +33,16 @@ This permission is required for:
 - Global hotkey detection
 - Hiding windows across all applications
 
+## Customizing DMG
+
+Place optional assets in `scripts/dmg-assets/` to customize the release DMG. If no assets are present, the DMG uses system defaults.
+
+| File | Purpose | Spec |
+|------|---------|------|
+| `background.png` | DMG window background | 1200×800 px (Retina 2×, maps to 600×400 window). App icon center at (300, 400) px, Applications link center at (900, 400) px. |
+| `volume-icon.icns` | Mounted volume icon in Finder sidebar | Standard `.icns` format |
+| `dmg-file-icon.icns` | DMG file icon in Finder | Standard `.icns` format, suggested style: disk + app logo |
+
 ## Building from Source
 
 **Requirements:** Xcode 16.2+, Swift 5

@@ -44,7 +44,7 @@ if [[ $# -lt 1 ]]; then
 fi
 
 VERSION="$1"
-DMG_NAME="${APP_NAME}-v${VERSION}.dmg"
+DMG_NAME="${APP_NAME} Installer-v${VERSION}.dmg"
 DMG_PATH="${BUILD_DIR}/${DMG_NAME}"
 
 echo "==> Releasing ${APP_NAME} v${VERSION}"
@@ -134,30 +134,64 @@ echo "    Signature valid."
 
 # ─── Step 4: Create DMG ─────────────────────────────────────────────────────
 
+echo "==> Checking for optional DMG assets in scripts/dmg-assets/..."
+
+DMG_ASSETS_DIR="${SCRIPT_DIR}/dmg-assets"
+DMG_BACKGROUND="${DMG_ASSETS_DIR}/background.png"
+VOLUME_ICON="${DMG_ASSETS_DIR}/volume-icon.icns"
+DMG_FILE_ICON="${DMG_ASSETS_DIR}/dmg-file-icon.icns"
+
+[[ -f "${DMG_BACKGROUND}" ]] && echo "    Found background.png" || echo "    No background.png — using default"
+[[ -f "${VOLUME_ICON}" ]]    && echo "    Found volume-icon.icns" || echo "    No volume-icon.icns — using default"
+[[ -f "${DMG_FILE_ICON}" ]]  && echo "    Found dmg-file-icon.icns" || echo "    No dmg-file-icon.icns — using default"
+
 echo "==> Creating DMG..."
 if command -v create-dmg &>/dev/null; then
-    create-dmg \
-        --volname "${APP_NAME}" \
-        --filesystem APFS \
-        --window-size 600 400 \
-        --icon-size 128 \
-        --icon "${APP_NAME}.app" 150 200 \
-        --app-drop-link 450 200 \
-        --no-internet-enable \
-        "${DMG_PATH}" \
-        "${APP_PATH}"
+    DMG_ARGS=(
+        --volname "${APP_NAME} Installer"
+        --filesystem APFS
+        --window-size 600 400
+        --window-pos 200 120
+        --icon-size 128
+        --text-size 14
+        --icon "${APP_NAME}.app" 150 200
+        --app-drop-link 450 200
+        --hide-extension "${APP_NAME}.app"
+        --no-internet-enable
+    )
+
+    if [[ -f "${VOLUME_ICON}" ]]; then
+        DMG_ARGS+=(--volicon "${VOLUME_ICON}")
+    fi
+
+    if [[ -f "${DMG_BACKGROUND}" ]]; then
+        DMG_ARGS+=(--background "${DMG_BACKGROUND}")
+    fi
+
+    create-dmg "${DMG_ARGS[@]}" "${DMG_PATH}" "${APP_PATH}"
 else
     echo "    create-dmg not found, falling back to hdiutil..."
     STAGING_DIR="${BUILD_DIR}/dmg-staging"
     mkdir -p "${STAGING_DIR}"
     cp -R "${APP_PATH}" "${STAGING_DIR}/"
     ln -s /Applications "${STAGING_DIR}/Applications"
-    hdiutil create -volname "${APP_NAME}" \
+    hdiutil create -volname "${APP_NAME} Installer" \
         -srcfolder "${STAGING_DIR}" \
         -fs APFS \
         -ov -format UDZO \
         "${DMG_PATH}"
     rm -rf "${STAGING_DIR}"
+fi
+
+# Set custom icon on the DMG file itself (Finder preview)
+if [[ -f "${DMG_FILE_ICON}" ]]; then
+    echo "    Setting DMG file icon from dmg-file-icon.icns..."
+    swift -e '
+        import AppKit
+        let a = CommandLine.arguments
+        guard let img = NSImage(contentsOfFile: a[1]) else { exit(1) }
+        NSWorkspace.shared.setIcon(img, forFile: a[2], options: [])
+    ' "${DMG_FILE_ICON}" "${DMG_PATH}" && echo "    DMG file icon set." || echo "    Warning: could not set DMG file icon."
 fi
 
 echo "    DMG created: ${DMG_PATH}"
